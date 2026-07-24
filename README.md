@@ -44,9 +44,24 @@ Se faltar `DATABASE_URL`, o arranque falha com uma mensagem explícita — a val
 | `pnpm db:generate` | Gera migrations a partir de `db/schema.ts`          |
 | `pnpm db:migrate`  | Aplica migrations pendentes                         |
 | `pnpm db:seed`     | Popula a base de dados com dados de desenvolvimento |
+| `pnpm db:drop`     | Apaga o schema `public` (recusa em produção)        |
+| `pnpm db:reset`    | `db:drop` + `db:migrate` + `db:seed`                |
 | `pnpm db:studio`   | Abre o Drizzle Studio                               |
 
 Antes de dar qualquer fase por concluída: `pnpm typecheck && pnpm lint && pnpm build`.
+
+## Base de dados
+
+O schema vive em [db/schema.ts](db/schema.ts) e é a fonte de verdade. Depois de o alterar:
+
+```bash
+pnpm db:generate   # escreve a migration em db/migrations/
+pnpm db:migrate    # aplica-a
+```
+
+`pnpm db:reset` apaga o schema `public` inteiro antes de migrar e fazer seed — usar só em
+desenvolvimento. O seed cria um administrador; a password vem de `SEED_ADMIN_PASSWORD` ou, se essa
+variável não existir, é gerada e impressa uma única vez.
 
 ## Ambiente
 
