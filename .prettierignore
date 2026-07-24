@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+build
+pnpm-lock.yaml
+components/ui
+db/migrations
+next-env.d.ts
