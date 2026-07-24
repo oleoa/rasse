@@ -1,12 +1,21 @@
 import { Footer } from "@/components/public/footer";
 import { Header } from "@/components/public/header";
+import { getSettings } from "@/lib/queries/settings";
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+export const revalidate = 60;
+
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getSettings();
+
   return (
     <div className="flex min-h-dvh flex-col">
       <Header />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <Footer
+        businessName={settings?.businessName}
+        instagramUrl={settings?.instagramUrl}
+        contactEmail={settings?.contactEmail}
+      />
     </div>
   );
 }

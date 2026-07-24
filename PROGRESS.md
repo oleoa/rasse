@@ -8,7 +8,7 @@ item a item e o que fica pendente de verificação humana.
 | 0 — Fundações                            | concluída   | 2026-07-24 |
 | 1 — Schema e dados                       | concluída   | 2026-07-25 |
 | 2 — Design system e layout               | concluída   | 2026-07-25 |
-| 3 — Páginas públicas                     | por começar | —          |
+| 3 — Páginas públicas                     | concluída   | 2026-07-25 |
 | 4 — Cesta e envio para WhatsApp          | por começar | —          |
 | 5 — Pedido de impressão personalizada    | por começar | —          |
 | 6 — Autenticação e shell do dashboard    | por começar | —          |
@@ -240,3 +240,88 @@ Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam. O log do `pnpm dev` 
 - Layout público com header e footer aplicado a todas as rotas de `app/(public)/`.
 - `PageHeader`, `EmptyState` e os skeletons prontos para as listagens da Fase 3.
 - `Footer` já preparado para receber `settings`; falta a camada `lib/queries` que a Fase 3 traz.
+
+---
+
+## Fase 3 — Páginas públicas
+
+**Data:** 2026-07-25 · **Estado:** concluída
+
+### O que foi feito
+
+- **Camada de dados:** `lib/queries/settings.ts`, `lib/queries/categories.ts` e
+  `lib/queries/products.ts`. Todas as queries de catálogo filtram por `status = 'published'` —
+  o filtro está no módulo de queries, não nas páginas, para não haver como esquecê-lo.
+- **`lib/format.ts`:** `formatBRL` (centavos → `R$ 1.234,50`) e datas em `America/Sao_Paulo`.
+- **`lib/images.ts`:** resolve `r2Key` para URL. Chaves com prefixo `seed/` apontam para
+  `public/seed/`; as restantes para `R2_PUBLIC_URL`. SVG passa ao lado do optimizador.
+- **`lib/markdown.tsx`:** renderizador de um subconjunto de markdown para nós React — ver
+  `BLOCKERS.md`.
+- **Home:** hero com `settings.heroTitle`/`heroSubtitle` e a última palavra em cobre, grelha de
+  destaques (`is_featured`), bloco sobre a oficina a partir de `about_md`, e CTA em superfície
+  quente para o pedido personalizado.
+- **`/produtos`:** filtro por categoria via `?categoria=`, ordenação por `position`, contagem de
+  peças, estado vazio distinto para "categoria sem peças" e "categoria inexistente".
+- **`/produtos/[slug]`:** galeria com miniaturas, preço com delta da variante, descrição em
+  markdown, selector de variante e campo de personalização (com estado, botão de cesta inerte),
+  produtos relacionados da mesma categoria, trilho de navegação.
+- **`/quem-somos`:** `settings.about_md` renderizado.
+- **`generateStaticParams`** para os 6 produtos publicados e `revalidate = 60` em todas as rotas
+  públicas.
+- **Metadata por página**, Open Graph com a primeira imagem e `og:image:alt`, canónico na página
+  de produto, e JSON-LD `Product` com URL de imagem absoluto.
+- **`next.config.ts`** com `images.remotePatterns` derivado de `R2_PUBLIC_URL` (vazio enquanto a
+  variável não existir).
+- **404 dedicado** em `app/(public)/produtos/[slug]/not-found.tsx`.
+
+### Checklist de aceitação
+
+| Critério                                                               | Resultado | Como foi verificado                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Produtos `draft` e `archived` dão 404 e não aparecem em listagens      | OK        | Contra `pnpm start`: `/produtos/kit-tabua-espatula` (draft) → **404**, `/produtos/vaso-geometrico-3d` (archived) → **404**, `/produtos/nao-existe` → **404**; `/produtos/tabua-churrasco-rustica` e `/produtos/peca-3d-sob-medida` → **200**. Nas listagens (home, `/produtos`, e as duas categorias que os conteriam), `grep` pelos dois slugs devolve 0 ocorrências. `/produtos` lista exactamente os 6 publicados.                        |
+| Preço formatado como `R$ 1.234,50`                                     | OK        | No HTML servido: `R$ 189,00`, `R$ 229,00`, `R$ 129,00`, `R$ 89,00`, `R$ 65,00` — bytes confirmados por `xxd` (`52 24 c2a0 …`, ou seja `R$` + espaço inquebrável, que é a saída correcta do ICU). `formatBRL(123450)` devolve exactamente `R$ 1.234,50`. O produto `on_request` mostra "Sob consulta" e não um preço.                                                                                                                         |
+| Lighthouse mobile ≥ 90 em Performance, A11y e SEO na página de produto | OK        | Lighthouse 12 em Chrome headless, perfil mobile, contra o build de produção: **Performance 96, Acessibilidade 100, SEO 100** (Best Practices 96). Zero auditorias de acessibilidade falhadas. FCP 0,8 s · LCP 2,8 s · TBT 10 ms · CLS 0. As outras páginas: `/` 97/96/100, `/produtos` 97/100/100, `/quem-somos` 97/100/100.                                                                                                                 |
+| Navegação por teclado completa; imagens com `alt`                      | Parcial   | Nenhuma imagem sem `alt` (as miniaturas da galeria levam `alt=""` por serem decorativas — o botão que as envolve tem `aria-label` com a descrição). Todos os controlos são elementos nativos: 11 `<a href>`, 4 `<button>`, 3 `<input>`; zero `tabindex="-1"`, zero handlers de clique em `<div>`/`<span>`. O anel de foco `--focus-ring` está aplicado em `:focus-visible`. **[pendente de verificação humana]** — a travessia real com Tab. |
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
+
+### Decisões tomadas
+
+- **`/produtos` ficou dinâmico**, não ISR. O filtro por categoria vive na query string, e o Next
+  não pré-renderiza rotas com `searchParams`. As restantes rotas públicas são estáticas com
+  `revalidate = 60`, incluindo as 6 páginas de produto. Alternativa seria `/produtos/[categoria]`
+  como segmento — mudaria a especificação de URL do `PLAN.md`, por isso ficou como está.
+- **Filtro de `published` dentro de `lib/queries`.** Nenhuma página pode listar um rascunho por
+  esquecimento; a regra está num sítio só.
+- **SVG de seed com `unoptimized`.** O optimizador do Next recusa SVG sem
+  `images.dangerouslyAllowSVG`, que abriria a porta a SVG com script vindo do R2. Marcar as
+  chaves `.svg` como não optimizadas evita a flag perigosa.
+- **Título do hero com a última palavra em cobre**, derivado de `settings.heroTitle` — a regra do
+  `DESIGN.md` de "uma palavra em âmbar" sem obrigar o dono a escrever markup nas configurações.
+- **`h2` visível em `/produtos`** ("Todas as peças" ou o nome da categoria, com a contagem). O
+  Lighthouse acusava `heading-order` por a página saltar de `h1` para os `h3` dos cartões; a
+  correcção também melhora a página.
+- **JSON-LD com URL de imagem absoluto**, resolvido contra `NEXT_PUBLIC_SITE_URL`, porque o
+  schema.org exige URLs absolutos.
+- **Botão "Adicionar à cesta" desativado** com texto a explicar porquê, em vez de um botão que
+  parece funcionar e não faz nada.
+
+### A testar manualmente antes de confiar nesta fase
+
+1. **Teclado:** percorrer `/produtos/tabua-gravada-nome-familia` só com Tab e Enter — trocar de
+   miniatura na galeria, escolher variante com as setas, escrever no campo de personalização.
+   Confirmar que o foco é sempre visível e que a ordem é a esperada.
+2. **Contraste do botão primário:** decidir entre as duas opções em `BLOCKERS.md`.
+3. **Preço com milhares:** nenhum produto do seed passa de R$ 999, por isso o separador de
+   milhares só foi verificado pela função. Vale a pena criar um produto de teste acima de
+   R$ 1.000 e ver na página.
+4. **Markdown:** escrever uma descrição com lista e negrito e confirmar que renderiza como
+   esperado — o renderizador é caseiro e cobre só um subconjunto.
+
+### Pronto para a fase seguinte
+
+- `ProductPurchase` já tem o estado de variante e de personalização; falta ligar o botão à store
+  Zustand da Fase 4.
+- `CartLink` no header já aceita o contador.
+- `formatBRL` e a distinção `fixed` / `on_request` prontas para o subtotal parcial da cesta.
+- `settings.whatsappNumber` continua com o placeholder `550000000000` — ver `BLOCKERS.md`.

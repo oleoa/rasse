@@ -9,6 +9,13 @@ const envSchema = z.object({
       "DATABASE_URL tem de ser uma connection string Postgres (Neon), a começar por postgres://.",
     ),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  // Domínio público do bucket R2. Opcional até à Fase 5: sem ele, só há as
+  // imagens locais de seed.
+  R2_PUBLIC_URL: z.url("R2_PUBLIC_URL tem de ser um URL completo, com protocolo.").optional(),
+  // URL público do site, usado como metadataBase das metatags Open Graph.
+  NEXT_PUBLIC_SITE_URL: z
+    .url("NEXT_PUBLIC_SITE_URL tem de ser um URL completo, com protocolo.")
+    .optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
