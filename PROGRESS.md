@@ -9,7 +9,7 @@ item a item e o que fica pendente de verificação humana.
 | 1 — Schema e dados                       | concluída   | 2026-07-25 |
 | 2 — Design system e layout               | concluída   | 2026-07-25 |
 | 3 — Páginas públicas                     | concluída   | 2026-07-25 |
-| 4 — Cesta e envio para WhatsApp          | por começar | —          |
+| 4 — Cesta e envio para WhatsApp          | concluída   | 2026-07-25 |
 | 5 — Pedido de impressão personalizada    | por começar | —          |
 | 6 — Autenticação e shell do dashboard    | por começar | —          |
 | 7 — CRUD de produtos/categorias/settings | por começar | —          |
@@ -325,3 +325,96 @@ Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
 - `CartLink` no header já aceita o contador.
 - `formatBRL` e a distinção `fixed` / `on_request` prontas para o subtotal parcial da cesta.
 - `settings.whatsappNumber` continua com o placeholder `550000000000` — ver `BLOCKERS.md`.
+
+---
+
+## Fase 4 — Cesta e envio para WhatsApp
+
+**Data:** 2026-07-25 · **Estado:** concluída
+
+### O que foi feito
+
+- **`lib/cart/store.ts`:** store Zustand com `persist` em `localStorage` (chave `rasse-cesta`).
+  Cada linha guarda `productId`, `variantId`, `quantity`, `personalizationText` e o snapshot de
+  nome, slug, variante, preço e imagem para renderizar sem rede. Chave de linha = produto +
+  variante + texto de personalização. Limites: 99 por linha, 50 linhas.
+- **`lib/cart/use-cart.ts`:** devolve a cesta vazia até à montagem, para o HTML do servidor e o do
+  cliente não divergirem.
+- **`lib/whatsapp.ts`:** mensagem no formato exacto da secção 6 do `CLAUDE.md`, corte a 1500
+  caracteres com "…e mais N itens (ver pelo código)", e `encodeURIComponent` sobre a string toda.
+- **`lib/session.ts`:** uuid em `sessionStorage`, sem cookies — o mesmo que a Fase 9 vai usar.
+- **`lib/mutations/carts.ts`:** Server Action `createCartAndGetWhatsappUrl`. Recebe só ids,
+  quantidades e texto; recarrega os produtos por id, descarta os que não estão `published`,
+  recalcula os preços a partir da base de dados, gera o `code`, grava `carts` + `cart_items` com
+  snapshots, regista `cart_sent` e devolve o link `wa.me`.
+- **Interface:** drawer a partir do header (`CartDrawer`), página `/cesta` com a mesma informação,
+  alterar quantidade, remover linha, limpar cesta, subtotal (ou "Subtotal parcial"), campo de nome
+  opcional, e ecrã de confirmação com o código e botão de copiar.
+- **Botão "Adicionar à cesta"** ligado, com aviso de limite de linhas.
+
+### Checklist de aceitação
+
+Verificada com Chrome headless (puppeteer-core) contra o build de produção, cruzando cada passo
+com `SELECT` directo à base de dados. **Todos os checks passaram.**
+
+| Critério                                                              | Resultado | Como foi verificado                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cesta sobrevive a refresh e a fechar o browser                        | OK        | Duas peças adicionadas; gravadas em `localStorage` (não `sessionStorage`). Sobrevivem ao `reload` (2 linhas) e a fechar a página e abrir outra no mesmo perfil (2 linhas). O contador do header lê `aria-label="Cesta, 2 itens"`.                                                                                                                                       |
+| Acentos e quebras de linha chegam corretos ao WhatsApp                | Parcial   | A mensagem gerada bate **byte a byte** com o exemplo do `CLAUDE.md`. `encodeURIComponent` produz `%0A` para as quebras e `%C3%A1` para `á`; descodificar o parâmetro `text` do URL devolve exactamente a string original, com acentos, travessão e quebras intactos. Sem emoji. **[pendente de verificação humana]** — abrir num iPhone, num Android e no WhatsApp Web. |
+| Produto despublicado entre a adição e o envio não parte o fluxo       | OK        | Duas peças na cesta; `tabua-corte-redonda` passada a `archived` por SQL entre a adição e o envio. O envio correu, devolveu código, mostrou "Ficaram de fora, por já não estarem disponíveis: Tábua de Corte Redonda." e gravou **só** a peça que continuava publicada. Zero erros de página.                                                                            |
+| Adulterar o preço no localStorage não altera o valor na base de dados | OK        | `localStorage` reescrito com `unitPriceCents: 1` e `productName: "PRODUTO ADULTERADO"`. O browser passou a mostrar `R$ 0,01` e o nome falso. Depois do envio, a base de dados tem `unit_price_cents_snapshot = 18900`, o nome real "Tábua de Churrasco Rústica" e `subtotal_cents = 18900`. Nenhum valor de 1 centavo em lado nenhum.                                   |
+| A linha de `carts` só existe depois do clique de envio                | OK        | `count(*)` sobre `carts` antes e depois de navegar por dois produtos, adicionar ambos, recarregar e abrir `/cesta`: inalterado. Sobe exactamente 1 no clique de envio.                                                                                                                                                                                                  |
+
+Extras verificados no mesmo percurso: subtotal ignora o item sob consulta e mostra
+"Subtotal parcial"; o item `on_request` grava com `unit_price_cents_snapshot = null`;
+`has_on_request_items` fica `true`; a cesta local é limpa após o envio; o evento `cart_sent` é
+registado com `path=/cesta`; o código respeita `RS-[alfabeto sem ambiguidades]{8}`.
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
+
+### Bug encontrado e corrigido durante a verificação
+
+O ecrã de confirmação vivia dentro do `CartCheckout`, que era desmontado assim que o envio
+limpava a cesta — o cliente via "A cesta está vazia." e **nunca via o código do pedido**. O estado
+de "enviado" subiu para o `CartPageClient` e a confirmação passou a componente próprio
+(`CartConfirmation`), renderizado antes de qualquer verificação de cesta vazia. Sem a verificação
+em browser isto passava despercebido: compila, tipa e faz lint sem uma queixa.
+
+### Decisões tomadas
+
+- **A Server Action não aceita preços nem nomes do cliente.** O input Zod só tem `productId`,
+  `variantId`, `quantity` e `personalizationText`. Tudo o resto vem da base de dados.
+- **Variante que desapareceu não parte o envio:** a linha cai para o produto base, com
+  `variant_name_snapshot = null`, em vez de rejeitar a cesta inteira.
+- **A janela do WhatsApp é aberta antes do `await`**, e só depois recebe o URL. Aberta depois da
+  resposta, o bloqueador de popups do browser trava-a.
+- **Se a inserção dos itens falhar, a cesta é apagada** — uma linha de `carts` sem itens não serve
+  para nada e sujaria o dashboard da Fase 8.
+- **O registo do evento `cart_sent` tem `catch` vazio.** Analytics nunca pode partir o fluxo que
+  gera receita.
+- **`CartLink` deu lugar a `CartDrawer`.** O ícone do header passou a abrir o drawer; o link para
+  `/cesta` está lá dentro.
+- **Personalização só é gravada se o produto a permitir**, mesmo que o cliente a envie.
+
+### A testar manualmente antes de confiar nesta fase
+
+1. **O critério que falta:** abrir o link `wa.me` gerado num **iPhone**, num **Android** e no
+   **WhatsApp Web**, e confirmar que os acentos, o travessão "—" e as quebras de linha aparecem
+   como deve ser na caixa de mensagem. É o único critério desta fase que não dá para automatizar.
+2. **O número de WhatsApp é o placeholder `550000000000`** — o link não abre uma conversa real até
+   ser substituído. Ver `BLOCKERS.md`.
+3. Testar num browser com cookies/armazenamento bloqueado, para confirmar que a cesta degrada sem
+   rebentar.
+4. Confirmar visualmente o drawer em mobile.
+
+### Estado da base de dados após a verificação
+
+Ficaram 5 cestas de teste (`RS-TBWP5FY9`, `RS-URU7QKJW`, `RS-Y49R72FD`, `RS-6QHJ6MS9`,
+`RS-DH68765H`) e 5 eventos `cart_sent`. Ficam de propósito: a Fase 8 exige verificar que um pedido
+criado na Fase 4 aparece no dashboard com os snapshots intactos. `pnpm db:reset` apaga-os.
+
+### Pronto para a fase seguinte
+
+- `lib/code.ts` já provado em uso real, pronto para os códigos de orçamento da Fase 5.
+- `lib/session.ts` pronto para o `/api/track` da Fase 9.
+- Há dados reais em `carts` e `cart_items` para a Fase 8 consumir.

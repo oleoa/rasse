@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { CartLink } from "@/components/public/cart-link";
+import { CartDrawer } from "@/components/public/cart-drawer";
 import { Container } from "@/components/public/container";
 import { MobileNav } from "@/components/public/mobile-nav";
 import { NAV_LINKS } from "@/components/public/nav-links";
 
-export function Header({ cartCount = 0 }: { cartCount?: number }) {
+export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       <Container className="flex h-16 items-center justify-between gap-4">
@@ -30,7 +30,7 @@ export function Header({ cartCount = 0 }: { cartCount?: number }) {
           ))}
         </nav>
 
-        <CartLink count={cartCount} />
+        <CartDrawer />
       </Container>
     </header>
   );

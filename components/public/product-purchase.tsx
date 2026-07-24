@@ -1,20 +1,22 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
 import { Price } from "@/components/public/price";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MAX_LINES, useCartStore } from "@/lib/cart/store";
+import { useCart } from "@/lib/cart/use-cart";
 import { cn } from "@/lib/utils";
 import type { ProductDetail } from "@/lib/queries/products";
 
-/**
- * Selector de variante e campo de personalização. O botão fica inerte nesta
- * fase — a Fase 4 liga-o à store da cesta.
- */
 export function ProductPurchase({ product }: { product: ProductDetail }) {
   const [variantId, setVariantId] = useState(product.variants[0]?.id ?? null);
   const [personalization, setPersonalization] = useState("");
+  const [added, setAdded] = useState(false);
+  const addLine = useCartStore((s) => s.addLine);
+  const { lines } = useCart();
   const fieldId = useId();
 
   const variant = product.variants.find((v) => v.id === variantId) ?? null;
@@ -22,6 +24,27 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
     product.priceType === "on_request" || product.priceCents === null
       ? null
       : product.priceCents + (variant?.priceDeltaCents ?? 0);
+
+  const cheio = lines.length >= MAX_LINES;
+
+  function handleAdd() {
+    const texto = personalization.trim();
+
+    addLine({
+      productId: product.id,
+      variantId,
+      quantity: 1,
+      personalizationText: product.allowsPersonalization && texto ? texto : null,
+      productName: product.name,
+      productSlug: product.slug,
+      variantName: variant?.name ?? null,
+      unitPriceCents: priceCents,
+      imageKey: product.images[0]?.r2Key ?? null,
+    });
+
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 2500);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,7 +68,7 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
                   v.id === variantId
                     ? "border-frame bg-brand/12 text-amber-500"
                     : "border-border text-body hover:border-copper-600",
-                  "has-[:focus-visible]:shadow-(--focus-ring)",
+                  "has-focus-visible:shadow-(--focus-ring)",
                 )}
               >
                 <input
@@ -70,6 +93,7 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
             id={fieldId}
             value={personalization}
             onChange={(event) => setPersonalization(event.target.value)}
+            maxLength={200}
             aria-describedby={product.personalizationHelp ? `${fieldId}-help` : undefined}
           />
           {product.personalizationHelp ? (
@@ -80,12 +104,23 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-2">
-        <Button type="button" size="lg" disabled aria-describedby={`${fieldId}-cesta`}>
+      <div className="flex flex-col gap-3">
+        <Button type="button" size="lg" onClick={handleAdd} disabled={cheio}>
           Adicionar à cesta
         </Button>
-        <p id={`${fieldId}-cesta`} className="text-small text-subtle">
-          A cesta entra em funcionamento na próxima fase.
+
+        <p aria-live="polite" className="text-small">
+          {cheio ? (
+            <span className="text-danger">
+              A cesta chegou ao limite de {MAX_LINES} linhas. Envia o pedido ou remove alguma peça.
+            </span>
+          ) : added ? (
+            <span className="text-subtle">
+              Adicionado. <Link href="/cesta">Ver a cesta</Link>
+            </span>
+          ) : (
+            <span className="text-subtle">O preço final é combinado no WhatsApp.</span>
+          )}
         </p>
       </div>
     </div>
