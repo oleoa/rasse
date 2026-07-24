@@ -150,3 +150,79 @@ O resto da paleta passa folgadamente: corpo 13,24:1, texto esbatido 5,32:1, link
 
 **Acção humana necessária:** escolher uma das opções, ou aceitar 3,05:1 conscientemente. Tem de
 ficar decidido antes da revisão de acessibilidade da Fase 10.
+
+---
+
+## [Fase 5] BLOQUEIO ACTIVO — faltam as contas Cloudflare (R2 e Turnstile)
+
+**Estado:** a execução autónoma parou aqui. As fases 0 a 4 estão concluídas e commitadas.
+
+A Fase 5 está marcada `[HUMAN]` no `PLAN.md` e precisa de dois serviços externos que não existem
+ainda. Não há como avançar sem inventar credenciais ou simular os serviços — as duas coisas que o
+`CLAUDE.md` e as regras de trabalho proíbem. Os critérios de aceitação da fase são, aliás,
+impossíveis de provar sem eles: "STL de ~40 MB chega ao R2", "submeter sem Turnstile válido falha
+no servidor".
+
+### 1. Cloudflare R2 — armazenamento dos ficheiros
+
+Cria um bucket em <https://dash.cloudflare.com> → R2 → _Create bucket_. Sugestão de nome:
+`rasse-uploads`. Depois, em _Manage R2 API Tokens_, cria um token com permissão de
+**Object Read & Write** limitado a esse bucket.
+
+Preenche em `.env.local` (e mais tarde nas variáveis de ambiente da Vercel):
+
+```
+R2_ACCOUNT_ID=            # o Account ID do Cloudflare, visível na página do R2
+R2_ACCESS_KEY_ID=         # do token criado
+R2_SECRET_ACCESS_KEY=     # do token criado, só é mostrado uma vez
+R2_BUCKET=rasse-uploads
+R2_PUBLIC_URL=            # domínio público do bucket, com https://
+```
+
+O `R2_PUBLIC_URL` vem de _Settings → Public access_: ou o subdomínio `r2.dev` (bom para
+desenvolvimento) ou um domínio próprio, por exemplo `https://ficheiros.oficinarasse.com.br`
+(preferível em produção, e já previsto na Fase 10). O `next.config.ts` já o transforma
+automaticamente em `images.remotePatterns` — não é preciso mexer lá.
+
+**CORS do bucket** (Settings → CORS policy), sem o qual o upload directo do browser falha:
+
+```json
+[
+  {
+    "AllowedOrigins": ["http://localhost:3000", "https://SEU-DOMINIO"],
+    "AllowedMethods": ["PUT"],
+    "AllowedHeaders": ["content-type"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+### 2. Cloudflare Turnstile — anti-spam do formulário
+
+Em <https://dash.cloudflare.com> → Turnstile → _Add site_. Modo **Managed**, com os domínios
+`localhost` e o domínio de produção.
+
+```
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=   # a site key, é pública e vai para o browser
+TURNSTILE_SECRET_KEY=             # a secret key, só servidor
+```
+
+Para testar sem uma conta real, a Cloudflare publica chaves de teste
+(<https://developers.cloudflare.com/turnstile/troubleshooting/testing/>) que aceitam ou recusam
+sempre. Servem para exercitar o caminho do código, mas **não provam** o critério de aceitação
+"submeter sem Turnstile válido falha no servidor" contra o serviço real.
+
+### 3. Já agora, para a Fase 6 (`[HUMAN]`, logo a seguir)
+
+Só falta um segredo, e este posso gerar eu — diz apenas se preferes gerá-lo tu:
+
+```
+AUTH_SECRET=              # 32 bytes aleatórios; `openssl rand -base64 32`
+```
+
+### Como retomar
+
+Preenche o `.env.local` com o que estiver disponível e diz para continuar. Se preferires,
+posso avançar já para a **Fase 6** (autenticação e shell do dashboard), que só precisa do
+`AUTH_SECRET`, e deixar a Fase 5 para quando as chaves da Cloudflare existirem — as duas fases não
+dependem uma da outra. Isso troca a ordem do `PLAN.md`, por isso não o faço sem autorização.
