@@ -2,129 +2,276 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
+/*
+ * Tokens da Oficina Rassë — ver DESIGN.md.
+ * A paleta e os semânticos da marca vivem em :root; o @theme mapeia-os para as
+ * variáveis do shadcn e para as utilidades do Tailwind. Nenhum componente
+ * escreve hex.
+ *
+ * Duas renomeações face ao DESIGN.md, por colisão de nomes com o shadcn:
+ *   --accent  -> --brand-accent  (no shadcn, --accent é o fundo de hover)
+ *   --radius-sm / --radius-md    (no Tailwind, são a escala de cantos)
+ */
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  color-scheme: dark;
+
+  /* Paleta base */
+  --copper-300: #e0a05c;
+  --copper-400: #cd8a41;
+  --copper-500: #c07a30;
+  --copper-600: #a3651f;
+  --copper-700: #7e4d15;
+  --amber-400: #d9992f;
+  --amber-500: #c98136;
+  --wood-200: #d9b98c;
+  --wood-300: #b98a54;
+  --wood-400: #9c6b35;
+  --wood-500: #7a4e22;
+  --wood-600: #5c3a18;
+  --char-900: #15100b;
+  --char-800: #1e1710;
+  --char-700: #2a2118;
+  --char-600: #3a2e21;
+  --cream-50: #f7f0e3;
+  --cream-100: #f2e7d5;
+  --cream-200: #e6d6bc;
+  --stone-400: #8d8781;
+  --stone-500: #6e6a66;
+  --stone-600: #4c4844;
+
+  /* Semânticos da marca */
+  --surface-page: var(--char-900);
+  --surface-card: var(--char-800);
+  --surface-raised: var(--char-700);
+  --surface-warm: linear-gradient(160deg, var(--wood-400), var(--wood-500));
+  --text-display: var(--cream-50);
+  --text-body: var(--cream-200);
+  --text-muted: var(--stone-400);
+  --text-accent: var(--amber-500);
+  --text-on-warm: var(--cream-50);
+  --brand-accent: var(--copper-500);
+  --brand-accent-hover: var(--copper-400);
+  --brand-accent-press: var(--copper-600);
+  --border-subtle: rgba(242, 231, 213, 0.14);
+  --border-frame: var(--copper-600);
+  --focus-ring: 0 0 0 2px rgba(201, 129, 54, 0.55);
+  --success: #6f8f4f;
+  --warning: var(--amber-400);
+  --danger: #a8442e;
+
+  /* Semânticos do shadcn, servidos pelos tokens da marca */
+  --background: var(--surface-page);
+  --foreground: var(--text-body);
+  --card: var(--surface-card);
+  --card-foreground: var(--text-body);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--text-display);
+  --primary: var(--brand-accent);
+  --primary-foreground: var(--cream-50);
+  --secondary: var(--surface-raised);
+  --secondary-foreground: var(--text-body);
+  --muted: var(--surface-raised);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--char-600);
+  --accent-foreground: var(--text-display);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--cream-50);
+  --border: var(--border-subtle);
+  --input: var(--border-subtle);
+  --ring: var(--brand-accent);
+  --radius: 6px;
+
+  /* Gráficos do dashboard (Fase 9) — só tons quentes, sem cor fria */
+  --chart-1: var(--copper-500);
+  --chart-2: var(--wood-300);
+  --chart-3: var(--amber-400);
+  --chart-4: var(--copper-700);
+  --chart-5: var(--stone-400);
+
+  /* Sidebar do dashboard (Fase 6) */
+  --sidebar: var(--surface-card);
+  --sidebar-foreground: var(--text-body);
+  --sidebar-primary: var(--brand-accent);
+  --sidebar-primary-foreground: var(--cream-50);
+  --sidebar-accent: var(--char-600);
+  --sidebar-accent-foreground: var(--text-display);
+  --sidebar-border: var(--border-subtle);
+  --sidebar-ring: var(--brand-accent);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+@theme inline {
+  /* Paleta exposta como utilidades: bg-char-800, text-cream-50, border-copper-600… */
+  --color-copper-300: var(--copper-300);
+  --color-copper-400: var(--copper-400);
+  --color-copper-500: var(--copper-500);
+  --color-copper-600: var(--copper-600);
+  --color-copper-700: var(--copper-700);
+  --color-amber-400: var(--amber-400);
+  --color-amber-500: var(--amber-500);
+  --color-wood-200: var(--wood-200);
+  --color-wood-300: var(--wood-300);
+  --color-wood-400: var(--wood-400);
+  --color-wood-500: var(--wood-500);
+  --color-wood-600: var(--wood-600);
+  --color-char-600: var(--char-600);
+  --color-char-700: var(--char-700);
+  --color-char-800: var(--char-800);
+  --color-char-900: var(--char-900);
+  --color-cream-50: var(--cream-50);
+  --color-cream-100: var(--cream-100);
+  --color-cream-200: var(--cream-200);
+  --color-stone-400: var(--stone-400);
+  --color-stone-500: var(--stone-500);
+  --color-stone-600: var(--stone-600);
+
+  --color-display: var(--text-display);
+  --color-body: var(--text-body);
+  --color-subtle: var(--text-muted);
+  --color-brand: var(--brand-accent);
+  --color-brand-hover: var(--brand-accent-hover);
+  --color-brand-press: var(--brand-accent-press);
+  --color-frame: var(--border-frame);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Tipografia */
+  --font-display: var(--font-playfair), "Times New Roman", serif;
+  --font-accent: var(--font-oswald), "Arial Narrow", sans-serif;
+  --font-body: var(--font-lora), Georgia, serif;
+  --font-sans: var(--font-body);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-eyebrow: 12px;
+  --text-eyebrow--line-height: 1.4;
+  --text-small: 13px;
+  --text-small--line-height: 1.5;
+  --text-base: 16px;
+  --text-base--line-height: 1.6;
+  --text-h3: 20px;
+  --text-h3--line-height: 1.3;
+  --text-h2: 28px;
+  --text-h2--line-height: 1.2;
+  --text-h1: 40px;
+  --text-h1--line-height: 1.1;
+  --text-hero: clamp(40px, 5vw, 64px);
+  --text-hero--line-height: 1.1;
+
+  --tracking-caps: 0.14em;
+  --tracking-eyebrow: 0.28em;
+
+  /* Cantos: 3–6px, pílula só para tags */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+  --radius-2xl: 6px;
+  --radius-3xl: 6px;
+  --radius-4xl: 6px;
+
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.45);
+  --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.55);
+
+  /* Movimento: só fades e eases suaves */
+  --default-transition-duration: 220ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --container-content: 1120px;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-body text-base text-foreground;
   }
-  html {
-    @apply font-sans;
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-bold text-display;
+    line-height: 1.1;
   }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    @apply text-amber-500;
+    text-decoration: none;
+    transition: color var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+
+  a:hover {
+    @apply text-copper-300;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+@utility frame {
+  /* Motivo assinatura: moldura fina de cobre recuada da borda do bloco. */
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border: 1px solid var(--border-frame);
+    pointer-events: none;
+  }
+}
+
+@utility surface-warm {
+  background: var(--surface-warm);
+  color: var(--text-on-warm);
+}
+
+@utility rule-copper {
+  /* Divisor curto de cobre, 48px, centrado. */
+  display: block;
+  width: 48px;
+  height: 1px;
+  border: 0;
+  background: var(--copper-600);
 }

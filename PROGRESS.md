@@ -7,7 +7,7 @@ item a item e o que fica pendente de verificação humana.
 | ---------------------------------------- | ----------- | ---------- |
 | 0 — Fundações                            | concluída   | 2026-07-24 |
 | 1 — Schema e dados                       | concluída   | 2026-07-25 |
-| 2 — Design system e layout               | por começar | —          |
+| 2 — Design system e layout               | concluída   | 2026-07-25 |
 | 3 — Páginas públicas                     | por começar | —          |
 | 4 — Cesta e envio para WhatsApp          | por começar | —          |
 | 5 — Pedido de impressão personalizada    | por começar | —          |
@@ -159,3 +159,84 @@ Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
 - Base de dados populada e consultável; `db.query` com relações a funcionar.
 - `lib/code.ts` pronto para a Fase 4 (cestas) e Fase 5 (orçamentos).
 - Tokens do `DESIGN.md` ainda por aplicar — é o primeiro item da Fase 2.
+
+---
+
+## Fase 2 — Design system e layout
+
+**Data:** 2026-07-25 · **Estado:** concluída
+
+### O que foi feito
+
+- Tokens do `DESIGN.md` em `app/globals.css`: paleta completa (copper, amber, wood, char, cream,
+  stone) e semânticos da marca em `:root`, mapeados no `@theme` para as variáveis do shadcn
+  (`--background`, `--foreground`, `--primary`, `--muted`, `--border`, `--ring`, cartas do
+  dashboard e sidebar) e expostos como utilidades (`bg-char-800`, `text-cream-50`, …).
+- Fontes por `next/font/google` com fallbacks declarados: Playfair Display (display), Oswald
+  (accent), Lora (corpo). Escala tipográfica (`text-eyebrow` a `text-hero`), tracking
+  (`tracking-caps`, `tracking-eyebrow`), cantos de 3–6px, sombras e duração base de 220ms no tema.
+- Utilidades da marca: `frame` (moldura de cobre recuada 14px), `surface-warm` (gradiente madeira),
+  `rule-copper` (régua de 48px).
+- Componentes de layout em `components/public/`: `Container`, `Header` (lockup, navegação,
+  `MobileNav` em sheet, `CartLink` com contador), `Footer`, `PageHeader`, `EmptyState`,
+  `ProductCardSkeleton` / `ProductGridSkeleton`, e tipografia (`Eyebrow`, `Accent`, `CopperRule`,
+  `Prose`).
+- Componentes shadcn adaptados ao `DESIGN.md`: `button` (font-accent, caixa alta, tracking-caps,
+  3px, hover/press em cobre, disabled a 45%), `input` e `textarea` (fundo char-700, foco em cobre
+  com `--focus-ring`), `label` (11px caixa alta), `badge` (pílula, cobre a 14%, âmbar).
+- Rota interna `/_ds` com todos os componentes e estados, `robots: noindex, nofollow`.
+- Tema único escuro (`color-scheme: dark`), sem `.dark` nem `@custom-variant dark` — o `DESIGN.md`
+  define um só tema.
+
+### Checklist de aceitação
+
+| Critério                                                                | Resultado                        | Como foi verificado                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/_ds` mostra botões, inputs, cards, badges, estados vazios e skeletons | OK                               | `curl http://localhost:3000/_ds` → 200. No HTML: 11 `data-slot="button"`, 7 `badge`, 4 `input`, 1 `textarea`, 5 `label`, 2 `card`, 15 `skeleton`, 1 `separator`, 5 blocos de estado vazio, 5 usos de `frame` e 29 réguas de cobre. As 9 secções aparecem nos `<h2>`.                                                                                                                                                                                                                                                   |
+| Zero cores hardcoded em componentes — tudo por token                    | OK                               | `grep -rniE "#[0-9a-f]{3,8}\|rgba?\(\|hsla?\(\|oklch\("` em `app/`, `components/` e `lib/`, excluindo `app/globals.css`: nenhuma ocorrência. Nenhuma classe de cor arbitrária (`bg-[…]`) e nenhuma cor por defeito do Tailwind. Todos os tons `amber-*`/`stone-*` usados estão definidos no `@theme`.                                                                                                                                                                                                                  |
+| Header e footer responsivos a 375px, 768px e 1440px                     | Lógica OK, aparência por validar | No CSS compilado: `@media (min-width:48rem){.md\:flex{display:flex}.md\:hidden{display:none}}` — abaixo de 768px a navegação desktop desaparece e o botão de menu aparece, acima de 768px inverte-se. `@media (min-width:40rem)` trata o rótulo da cesta e o padding do container. `.max-w-content{max-width:1120px}` limita o conteúdo a 1440px. O sheet mobile tem 288px, cabe nos 375px; o footer usa `flex-wrap`; não há larguras fixas maiores que a viewport. **[pendente de verificação humana]** — ver abaixo. |
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam. O log do `pnpm dev` não tem erros.
+
+### Decisões tomadas
+
+- **Duas renomeações de tokens, por colisão com o shadcn:** o `--accent` do `DESIGN.md` (cobre)
+  passou a `--brand-accent`, porque no shadcn `--accent` é o fundo de hover; e os `--radius-sm` /
+  `--radius-md` do `DESIGN.md` foram absorvidos pela escala de cantos do Tailwind, fixada em
+  3–6px. A paleta e todos os outros nomes ficaram iguais aos do `DESIGN.md`.
+- **Escala de espaçamento nativa do Tailwind.** Os valores do `DESIGN.md` (4, 8, 12, 16, 24, 32,
+  48, 64px) existem todos na escala por defeito (1, 2, 3, 4, 6, 8, 12, 16), por isso não foi
+  criada uma escala paralela.
+- **Componentes do shadcn editados à mão.** O `CLAUDE.md` pede que não se editem "sem motivo";
+  aplicar o design system é o motivo, e é para isso que os componentes do shadcn vivem no
+  repositório. Só mudaram classes — a API (variantes, `asChild`) mantém-se.
+- **`Button` e `Badge` passaram a Client Components.** O `@radix-ui/react-slot` (usado pelo
+  `asChild`) chama `createContext` sem trazer a directiva `"use client"`, o que fazia o build
+  falhar com `createContext is not a function` ao recolher a configuração da página. A alternativa
+  seria abdicar do `asChild`, que é usado para transformar botões em links.
+- **`radix-ui/slot` em vez do barrel `radix-ui`.** Importar do barrel arrasta todos os primitivos
+  para o grafo do servidor.
+- **`/_ds` criado como `app/(public)/%5Fds/`.** No App Router uma pasta com `_` é privada e não
+  gera rota; `%5F` é a forma documentada de obter o segmento literal `/_ds`.
+- **Contador da cesta por prop.** O `CartLink` aceita `count` (0 por defeito); a Fase 4 liga-o à
+  store Zustand. Nada de estado de cesta nesta fase.
+- **Footer sem links legais.** As páginas `/legal/*` são da Fase 10; não se criam links mortos.
+  O `Footer` já aceita `instagramUrl` e `contactEmail` por prop, para a Fase 3 os ligar a
+  `settings`.
+
+### A testar manualmente antes de confiar nesta fase
+
+1. **Responsividade real:** abrir `/_ds` e `/` a 375px, 768px e 1440px e confirmar que não há
+   scroll horizontal, que o menu mobile abre e fecha, e que o header não parte com o lockup e o
+   ícone da cesta lado a lado.
+2. **Contraste:** confirmar que `--text-muted` (`#8d8781`) sobre `--surface-page` (`#15100b`)
+   é legível o suficiente. Pela fórmula WCAG dá cerca de 6:1, mas convém ver no ecrã.
+3. **Fontes:** ver se Playfair/Oswald/Lora são aceitáveis como aproximações — ver `BLOCKERS.md`.
+4. **Foco por teclado:** percorrer `/_ds` com Tab e confirmar que o anel de cobre
+   (`--focus-ring`) é visível em botões, campos e links.
+
+### Pronto para a fase seguinte
+
+- Layout público com header e footer aplicado a todas as rotas de `app/(public)/`.
+- `PageHeader`, `EmptyState` e os skeletons prontos para as listagens da Fase 3.
+- `Footer` já preparado para receber `settings`; falta a camada `lib/queries` que a Fase 3 traz.

@@ -60,3 +60,51 @@ builds da Vercel; o `bcryptjs` é o que a documentação do Auth.js v5 recomenda
 algoritmo e o custo (12 rounds) são os mesmos, e os hashes são intermutáveis.
 
 **Acção humana necessária:** nenhuma, a não ser que prefiras o binding nativo.
+
+---
+
+## [Fase 2] Fontes reais da marca por confirmar
+
+**O quê:** o `DESIGN.md` (secção 7) diz que Playfair Display, Oswald e Lora são aproximações do
+Google Fonts, não as fontes originais da Rassë. Foram essas as carregadas, via `next/font`.
+
+**Impacto:** a identidade tipográfica está próxima mas não é a real. Trocar depois é barato — as
+três fontes entram por três variáveis CSS (`--font-display`, `--font-accent`, `--font-body`) em
+`app/globals.css` e por `app/layout.tsx`.
+
+**Acção humana necessária:** confirmar as fontes reais, ou aceitar as aproximações. Se forem
+ficheiros licenciados, entregá-los para `next/font/local`.
+
+---
+
+## [Fase 2] Logo da marca em falta
+
+**O quê:** o `DESIGN.md` avisa que só existem recortes de baixa resolução do Instagram e proíbe
+redesenhar a marca. O header e o footer usam por isso o lockup tipográfico "RASSË" em
+`--font-display`, não uma imagem.
+
+**Acção humana necessária:** fornecer o logo em SVG ou PNG de alta resolução. Enquanto não houver,
+o lockup tipográfico fica — é uma solução legítima, não um placeholder partido.
+
+---
+
+## [Fase 2] Ícones: adição ao DESIGN.md, assinalada
+
+**O quê:** o `DESIGN.md` diz que a marca não tem sistema de ícones e que, sendo inevitável, se use
+Lucide com traço 1.5px "sinalizando como adição". O `PLAN.md` pede explicitamente um ícone de
+cesta no header.
+
+**Onde:** apenas dois ícones, ambos com `strokeWidth={1.5}` — `ShoppingBasket` em
+`components/public/cart-link.tsx` e `Menu` em `components/public/mobile-nav.tsx`.
+
+**Acção humana necessária:** nenhuma, a não ser que prefiras o header só com tipografia
+("CESTA (2)"), que é o que o `DESIGN.md` favorece.
+
+---
+
+## [Fase 2] Fotografia real da oficina em falta
+
+**O quê:** o `DESIGN.md` manda usar fotos reais e, enquanto não houver, placeholders neutros com
+legenda em monospace. É o que está em `public/seed/` (10 SVGs).
+
+**Acção humana necessária:** fornecer fotografia da oficina e das peças antes da Fase 10.

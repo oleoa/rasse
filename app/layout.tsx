@@ -1,13 +1,34 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Lora, Oswald, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
-const sans = Geist({ variable: "--font-sans", subsets: ["latin"] });
-const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["Times New Roman", "serif"],
+});
+
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["Arial Narrow", "sans-serif"],
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["Georgia", "serif"],
+});
 
 export const metadata: Metadata = {
-  title: "Oficina Rassë",
-  description: "Oficina-ateliê de impressão 3D e gravação a laser.",
+  title: {
+    default: "Oficina Rassë",
+    template: "%s — Oficina Rassë",
+  },
+  description: "Oficina-ateliê de gravação em madeira e impressão 3D.",
 };
 
 export default function RootLayout({
@@ -17,7 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${sans.variable} ${mono.variable} antialiased`}>{children}</body>
+      <body className={`${playfair.variable} ${oswald.variable} ${lora.variable} antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
