@@ -48,6 +48,7 @@ Se faltar `DATABASE_URL`, o arranque falha com uma mensagem explícita — a val
 | `pnpm db:reset`    | `db:drop` + `db:migrate` + `db:seed`                |
 | `pnpm db:studio`   | Abre o Drizzle Studio                               |
 | `pnpm files:clean` | Limpa ficheiros órfãos e fora da retenção (simula)  |
+| `pnpm user:create` | Cria um administrador do painel                     |
 
 Antes de dar qualquer fase por concluída: `pnpm typecheck && pnpm lint && pnpm build`.
 
@@ -109,6 +110,22 @@ caminho da recusa.
 
 > `NEXT_PUBLIC_TURNSTILE_SITE_KEY` é embutida no bundle **durante o build**. Trocar a chave obriga
 > a um novo build, não basta reiniciar o servidor.
+
+## Painel
+
+O painel vive em `/dashboard` e está fechado por `middleware.ts`. Não há registo público: os
+administradores criam-se pela linha de comandos.
+
+```bash
+pnpm user:create                              # pergunta email, nome e password
+pnpm user:create -- --email=a@b.c --name=Ana  # password continua a ser pedida
+```
+
+A password nunca passa por argumento nem por variável de ambiente, para não ficar no histórico da
+shell. Mínimo de 10 caracteres, guardada com bcrypt a 12 rounds.
+
+A sessão é um JWT assinado com `AUTH_SECRET`. **O valor tem de ser o mesmo em todos os ambientes de
+um mesmo deploy** — mudá-lo invalida todas as sessões activas.
 
 ## Ambiente
 

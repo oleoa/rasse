@@ -11,7 +11,7 @@ item a item e o que fica pendente de verificação humana.
 | 3 — Páginas públicas                     | concluída   | 2026-07-25 |
 | 4 — Cesta e envio para WhatsApp          | concluída   | 2026-07-25 |
 | 5 — Pedido de impressão personalizada    | concluída   | 2026-07-25 |
-| 6 — Autenticação e shell do dashboard    | por começar | —          |
+| 6 — Autenticação e shell do dashboard    | concluída   | 2026-07-25 |
 | 7 — CRUD de produtos/categorias/settings | por começar | —          |
 | 8 — Pedidos e orçamentos                 | por começar | —          |
 | 9 — Analytics                            | por começar | —          |
@@ -520,3 +520,84 @@ ficheiros). Servem à Fase 8, que tem de os mostrar no dashboard com download po
 - `lib/r2.ts` já expõe `presignDownload` com 15 minutos, que é o que a Fase 8 pede.
 - `lib/rate-limit.ts` reutilizável no `/api/track` da Fase 9.
 - Falta `AUTH_SECRET` para a Fase 6 — ver `BLOCKERS.md`.
+
+---
+
+## Fase 6 — Autenticação e shell do dashboard
+
+**Data:** 2026-07-25 · **Estado:** concluída
+
+A fase estava marcada `[HUMAN]` por causa do `AUTH_SECRET`. Como não é uma conta nem um serviço —
+são 32 bytes aleatórios — foi gerado com `openssl rand -base64 32` e escrito no `.env.local`, em
+vez de parar a execução por isso. Fica registado em `BLOCKERS.md`.
+
+### O que foi feito
+
+- **Auth.js v5 (`next-auth@5.0.0-beta.32`)** com provider `credentials` e sessão em JWT.
+  A configuração está partida em dois: `lib/auth.config.ts` sem providers, que o middleware pode
+  importar, e `lib/auth.ts` com o provider, que só corre no runtime Node — o middleware corre no
+  edge, onde não há bcrypt nem ligação à base de dados.
+- **`middleware.ts`** com `matcher: ["/dashboard/:path*"]`. O callback `authorized` deixa passar
+  `/dashboard/login` e redireciona o resto para o login com `callbackUrl`.
+- **Segunda tranca no layout do painel:** `app/(dashboard)/dashboard/layout.tsx` volta a verificar a
+  sessão, para o caso de o matcher mudar sem alguém reparar.
+- **`pnpm user:create`:** cria administradores pela linha de comandos, com validação de email, nome
+  e password (mínimo 10 caracteres, confirmação, bcrypt a 12 rounds). A password nunca passa por
+  argumento nem por variável de ambiente.
+- **Shell do painel:** sidebar com as seis secções, utilizador e logout, trilho de navegação
+  derivado do caminho, e menu recolhido abaixo de 1024px. Link "saltar para o conteúdo".
+- **`/dashboard`** com contadores reais de pedidos, orçamentos, produtos e categorias.
+- **Placeholders** para as cinco secções, para a sidebar não apontar para 404.
+- **Rate limit no login:** 10 tentativas por IP em 15 minutos, reutilizando `lib/rate-limit.ts`.
+
+### Checklist de aceitação
+
+Verificada em Chrome headless contra o build de produção, e a persistência com `pnpm dev` a ser
+reiniciado a sério. **Todos os checks passaram.**
+
+| Critério                                                                              | Resultado | Como foi verificado                                                                                                                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aceder a `/dashboard/produtos` sem sessão redireciona para o login e volta ao destino | OK        | Sem cookie, `/dashboard/produtos` → `/dashboard/login?callbackUrl=%2Fdashboard%2Fprodutos`. Depois de entrar, a página aterra em `/dashboard/produtos`. As outras cinco rotas do painel também ficam acessíveis com sessão. O cookie é `authjs.session-token`, `httpOnly`, `SameSite=Lax`.         |
+| Password errada não distingue "utilizador não existe" de "password inválida"          | OK        | Email real com password errada → _"Email ou password inválidos."_; email inexistente → **exactamente a mesma frase**, comparada carácter a carácter. O `authorize` compara sempre contra um hash bcrypt descartável quando o utilizador não existe, para o tempo de resposta também não denunciar. |
+| Sessão persiste entre reinícios do servidor de desenvolvimento                        | OK        | Login em `pnpm dev` (PID 1184), cookie guardado, servidor morto (confirmado sem resposta) e arrancado de novo (PID 1420). O **mesmo** cookie devolve 200 em `/dashboard` e `/dashboard/produtos`, e a página servida traz `leonardo@strutura.ai`. Sem cookie → 302; cookie adulterado → 302.       |
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
+
+### Problema encontrado e resolvido durante a verificação
+
+`UntrustedHost: Host must be trusted` em tudo o que tocava no Auth.js. O Auth.js v5 só confia no
+host automaticamente quando detecta que corre na Vercel; em `localhost` recusa. Resolvido com
+`trustHost: true` na configuração. O risco de confiar no cabeçalho `Host` fica contido pela
+validação de `callbackUrl`, que só aceita caminhos internos começados por `/dashboard` — sem isso
+seria um redirect aberto.
+
+### Decisões tomadas
+
+- **Login em `app/(auth)/dashboard/login/`, fora do ramo protegido.** Se vivesse debaixo de
+  `app/(dashboard)/dashboard/`, herdava o layout que redireciona para o login — um ciclo infinito.
+- **Mensagem única para as duas falhas de login**, e comparação bcrypt contra um hash descartável
+  quando o email não existe, para o tempo de resposta não revelar que emails estão registados.
+- **`callbackUrl` validado nos dois lados** (página e Server Action): tem de começar por
+  `/dashboard` e não pode começar por `//`.
+- **Placeholders nas cinco secções** em vez de uma sidebar com links mortos.
+- **Contadores por `count()` do SQL**, não por trazer as linhas e contar em JavaScript.
+
+### A testar manualmente antes de confiar nesta fase
+
+1. **Sidebar em mobile:** abrir `/dashboard` num telemóvel e confirmar o menu recolhido.
+2. **Navegação por teclado** no formulário de login e na sidebar.
+3. **Utilizador de seed:** existe `admin@oficinarasse.local` com a password `adminrasse`, criado
+   pelo `db:seed`. Em produção, apagar esse utilizador e criar o real com `pnpm user:create`.
+4. Quando a base de dados está inacessível, o login mostra _"Email ou password inválidos."_ em vez
+   de um erro de infraestrutura — o Auth.js embrulha tudo em `CredentialsSignin`. Não é grave, mas
+   pode confundir num incidente.
+
+### Utilizadores existentes
+
+`admin@oficinarasse.local` (do seed) e `leonardo@strutura.ai` (criado pelo `pnpm user:create`).
+
+### Pronto para a fase seguinte
+
+- `auth()` disponível para as Server Actions da Fase 7 e para o download assinado da Fase 8.
+- Shell do painel, trilho e `StatCard` prontos a receber conteúdo.
+- `lib/queries/dashboard.ts` já faz as contagens que a Fase 9 vai expandir.

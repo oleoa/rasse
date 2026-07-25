@@ -17,7 +17,8 @@
     "db:drop": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/db-drop.ts",
     "db:reset": "pnpm db:drop && pnpm db:migrate && pnpm db:seed",
     "db:studio": "drizzle-kit studio",
-    "files:clean": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/clean-files.ts"
+    "files:clean": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/clean-files.ts",
+    "user:create": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/create-user.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1094.0",
@@ -30,6 +31,7 @@
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.26.0",
     "next": "15.5.21",
+    "next-auth": "5.0.0-beta.32",
     "radix-ui": "^1.6.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",

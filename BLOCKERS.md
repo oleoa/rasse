@@ -199,21 +199,33 @@ apagadas pelo `pnpm files:clean`.
 
 ---
 
-## [Fase 6] `AUTH_SECRET` por gerar
+## [Fase 6] `AUTH_SECRET` gerado automaticamente
 
-**O quê:** a Fase 6 (autenticação) precisa de `AUTH_SECRET`. Não é uma conta nem um serviço — são
-32 bytes aleatórios, que posso gerar eu.
+**O quê:** a Fase 6 estava marcada `[HUMAN]` por causa do `AUTH_SECRET`, mas não é uma conta nem um
+serviço — são 32 bytes aleatórios. Foi gerado com `openssl rand -base64 32` e escrito no
+`.env.local`, para não parar a execução por um segredo que qualquer um dos dois pode criar.
 
-**Acção humana necessária:** dizer se preferes gerá-lo tu (`openssl rand -base64 32`) ou se posso
-gerar e escrever no `.env.local`.
+**Atenção no deploy:** a sessão é um JWT assinado com esta chave. O valor na Vercel tem de ser
+**o mesmo** que está no `.env.local` se quiseres que as sessões sobrevivam; mudá-lo desliga toda a
+gente. Guardá-lo num gestor de passwords é boa ideia — não há como o recuperar do `.env.local` se
+o ficheiro se perder.
+
+**Acção humana necessária:** copiar o valor para as variáveis de ambiente da Vercel na Fase 10.
 
 ---
 
-## [Fase 6] Password do administrador em desenvolvimento
+## [Fase 6] Utilizadores de desenvolvimento a apagar antes de produção
 
-**O quê:** `SEED_ADMIN_PASSWORD=adminrasse` está no `.env.local`. Serve para desenvolvimento, mas
-essa conta vê todos os pedidos, todos os contactos de clientes e edita preços.
+**O quê:** existem dois administradores na base de dados:
 
-**Acção humana necessária:** em produção, criar o utilizador com `pnpm user:create` (Fase 6) e uma
-password forte. Nunca correr o seed contra a base de produção — o `pnpm db:reset` apaga o schema
-`public` inteiro.
+| Email                      | Origem             | Password                       |
+| -------------------------- | ------------------ | ------------------------------ |
+| `admin@oficinarasse.local` | `pnpm db:seed`     | `adminrasse` (de `.env.local`) |
+| `leonardo@strutura.ai`     | `pnpm user:create` | definida na criação            |
+
+Qualquer uma destas contas vê todos os pedidos, todos os contactos de clientes e edita preços.
+`adminrasse` não serve para produção.
+
+**Acção humana necessária:** antes do lançamento, apagar `admin@oficinarasse.local` e confirmar que
+a password da conta real é forte. Nunca correr o seed contra a base de produção — o `pnpm db:reset`
+apaga o schema `public` inteiro.
