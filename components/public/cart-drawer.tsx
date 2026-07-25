@@ -42,7 +42,7 @@ export function CartDrawer() {
         {count > 0 ? (
           <span
             aria-hidden="true"
-            className="absolute -top-0.5 -right-0.5 inline-flex size-4 items-center justify-center rounded-full bg-brand font-accent text-[10px] leading-none text-cream-50"
+            className="absolute -top-0.5 -right-0.5 inline-flex size-4 items-center justify-center rounded-full bg-brand font-accent text-[10px] leading-none text-char-900"
           >
             {count > 99 ? "99+" : count}
           </span>

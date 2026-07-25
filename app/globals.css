@@ -50,9 +50,12 @@
   --text-muted: var(--stone-400);
   --text-accent: var(--amber-500);
   --text-on-warm: var(--cream-50);
-  --brand-accent: var(--copper-500);
-  --brand-accent-hover: var(--copper-400);
-  --brand-accent-press: var(--copper-600);
+  /* Rampa deslocada um degrau face ao DESIGN.md, para o texto escuro por cima
+     do cobre passar o WCAG AA em todos os estados: 6,58:1 / 8,42:1 / 5,46:1.
+     A regra do DESIGN.md mantém-se — hover mais claro, press mais escuro. */
+  --brand-accent: var(--copper-400);
+  --brand-accent-hover: var(--copper-300);
+  --brand-accent-press: var(--copper-500);
   --border-subtle: rgba(242, 231, 213, 0.14);
   --border-frame: var(--copper-600);
   --focus-ring: 0 0 0 2px rgba(201, 129, 54, 0.55);
@@ -68,7 +71,7 @@
   --popover: var(--surface-raised);
   --popover-foreground: var(--text-display);
   --primary: var(--brand-accent);
-  --primary-foreground: var(--cream-50);
+  --primary-foreground: var(--char-900);
   --secondary: var(--surface-raised);
   --secondary-foreground: var(--text-body);
   --muted: var(--surface-raised);
@@ -93,7 +96,7 @@
   --sidebar: var(--surface-card);
   --sidebar-foreground: var(--text-body);
   --sidebar-primary: var(--brand-accent);
-  --sidebar-primary-foreground: var(--cream-50);
+  --sidebar-primary-foreground: var(--char-900);
   --sidebar-accent: var(--char-600);
   --sidebar-accent-foreground: var(--text-display);
   --sidebar-border: var(--border-subtle);

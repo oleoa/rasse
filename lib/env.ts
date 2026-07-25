@@ -37,6 +37,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: required("NEXT_PUBLIC_TURNSTILE_SITE_KEY"),
   TURNSTILE_SECRET_KEY: required("TURNSTILE_SECRET_KEY"),
 
+  // Auth.js: assina os JWT de sessão e os tokens de pré-visualização.
+  AUTH_SECRET: required("AUTH_SECRET"),
+
   // URL público do site, usado como metadataBase das metatags Open Graph.
   NEXT_PUBLIC_SITE_URL: optionalUrl(
     "NEXT_PUBLIC_SITE_URL tem de ser um URL completo, com protocolo.",

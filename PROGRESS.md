@@ -12,7 +12,7 @@ item a item e o que fica pendente de verificação humana.
 | 4 — Cesta e envio para WhatsApp          | concluída   | 2026-07-25 |
 | 5 — Pedido de impressão personalizada    | concluída   | 2026-07-25 |
 | 6 — Autenticação e shell do dashboard    | concluída   | 2026-07-25 |
-| 7 — CRUD de produtos/categorias/settings | por começar | —          |
+| 7 — CRUD de produtos/categorias/settings | concluída   | 2026-07-25 |
 | 8 — Pedidos e orçamentos                 | por começar | —          |
 | 9 — Analytics                            | por começar | —          |
 | 10 — Lançamento                          | por começar | —          |
@@ -601,3 +601,114 @@ seria um redirect aberto.
 - `auth()` disponível para as Server Actions da Fase 7 e para o download assinado da Fase 8.
 - Shell do painel, trilho e `StatCard` prontos a receber conteúdo.
 - `lib/queries/dashboard.ts` já faz as contagens que a Fase 9 vai expandir.
+
+---
+
+## Fase 7 — CRUD de produtos, categorias e configurações
+
+**Data:** 2026-07-25 · **Estado:** concluída
+
+Antes desta fase foi aplicada a decisão de contraste que estava pendente em `BLOCKERS.md` —
+detalhes na secção "Contraste do botão primário", mais abaixo.
+
+### O que foi feito
+
+- **Validação partilhada** em `lib/validation/product.ts`: os mesmos schemas Zod correm no
+  formulário e na Server Action, por isso o erro aparece sempre no campo certo.
+- **`lib/slug.ts`:** `slugify` remove acentos e normaliza; `slugifyWhileTyping` é a variante usada
+  enquanto se escreve — ver o bug mais abaixo.
+- **`lib/mutations/products.ts`:** gravar (criar e editar numa só acção), sincronizar variantes e
+  imagens, acções em massa (publicar / arquivar / voltar a rascunho) e apagar. Cada mutação faz
+  `revalidatePath` das rotas públicas afectadas.
+- **`lib/mutations/categories.ts`** e **`lib/mutations/settings.ts`** com o mesmo padrão.
+- **Lista de produtos** com pesquisa por nome ou endereço, filtro por estado e categoria,
+  paginação de 20, selecção múltipla e acções em massa.
+- **Formulário de produto** com todos os campos da secção 5 do `CLAUDE.md`, editor markdown com
+  pré-visualização, slug gerado a partir do nome, avisos de SEO por tamanho, variantes com
+  reordenação e delta positivo ou negativo, e imagens com upload para o R2, reordenação, definir
+  capa e texto alternativo obrigatório.
+- **`POST /api/uploads/produtos`:** assinaturas para imagens de produto, com a sessão como porta em
+  vez do Turnstile. Chaves em `products/{product_id}/{uuid}.{ext}`.
+- **Categorias** com CRUD, reordenação e bloqueio de apagar quando têm produtos.
+- **Configurações** com WhatsApp, textos do hero, `about_md`, Instagram, email e CNPJ.
+- **Pré-visualização de rascunhos** em `/produtos/{slug}/previsualizar?token=…`, com um HMAC do id
+  do produto assinado com o `AUTH_SECRET`.
+
+### Checklist de aceitação
+
+Verificada em Chrome headless contra o build de produção, cruzando com a base de dados e com o R2.
+**Todos os checks passaram.**
+
+| Critério                                                       | Resultado | Como foi verificado                                                                                                                                                                                                                                              |
+| -------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Criar → editar → publicar → arquivar sem recarregar a página   | OK        | Produto criado pelo formulário: a URL passou sozinha de `/novo` para `/dashboard/produtos/{uuid}`, gravado como `draft` com `price_cents = 14990`. Editar a descrição curta mostrou "Guardado" sem sair da página. Publicar e arquivar seguiram na mesma página. |
+| Publicar reflete-se na listagem pública em menos de 5 segundos | OK        | Antes de publicar, o slug não estava em `/produtos`. Depois de gravar com estado "Publicado", apareceu em **2,1 s**, e a página do produto passou a responder 200.                                                                                               |
+| Slug duplicado mostra erro no campo, não uma exceção           | OK        | Ao tentar reutilizar um endereço: _"Já existe um produto com este endereço."_ num `role="alert"`, o campo com `aria-invalid="true"`, a página continua em `/dashboard/produtos/novo` e **nenhum** produto duplicado foi criado. Zero erros de consola.           |
+| Apagar imagem remove o objeto do R2 e a linha da base de dados | OK        | PNG carregado pelo painel → linha em `product_images` com chave `products/{id}/{uuid}.png`, dimensões `4×3` lidas do ficheiro, e `HeadObject` a confirmar no R2. Depois de remover e gravar: zero linhas na base de dados e `HeadObject` a falhar.               |
+
+Verificado no mesmo percurso: arquivar tira da listagem e faz a rota directa dar 404; a
+pré-visualização abre com token válido, avisa que é pré-visualização, é `noindex`, e dá 404 sem
+token ou com token inventado; o botão de apagar categoria fica desactivado quando há produtos; e
+gravar as configurações chega à home dentro do mesmo pedido.
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
+
+### Bug encontrado e corrigido durante a verificação
+
+**Não era possível escrever um hífen no campo do endereço.** O `slugify` corria a cada tecla e
+removia o hífen final, por isso escrever "tabua-de-corte" produzia "tabuadecorte" — o hífen
+desaparecia antes de a letra seguinte chegar. Só apareceu porque o teste escreveu um slug à mão em
+vez de aceitar o gerado. Corrigido com `slugifyWhileTyping`, que mantém o hífen final enquanto se
+escreve, e `slugify` completo no `onBlur` e antes de gravar. O mesmo se aplicava às categorias.
+
+### Contraste do botão primário — decidido e aplicado
+
+O `DESIGN.md` mandava creme sobre cobre, o que dava **3,05:1** e falhava o WCAG AA. Foi invertido
+para texto escuro (`--char-900`) sobre cobre, mas o estado _press_ ficava em 4,00:1, ainda abaixo.
+A solução foi deslocar a rampa um degrau, mantendo a regra do `DESIGN.md` de hover mais claro e
+press mais escuro:
+
+| Estado | Antes              | Agora                     | Contraste |
+| ------ | ------------------ | ------------------------- | --------- |
+| normal | copper-500 + creme | copper-400 + `--char-900` | 6,58:1    |
+| hover  | copper-400 + creme | copper-300 + `--char-900` | 8,42:1    |
+| press  | copper-600 + creme | copper-500 + `--char-900` | 5,46:1    |
+
+O contador da cesta seguiu a mesma mudança. O botão destrutivo já passava, com 5,25:1.
+
+### Decisões tomadas
+
+- **Uma só acção `saveProduct` para criar e editar**, com o id a `null` na criação. Menos código e
+  um só sítio onde a unicidade do slug é verificada.
+- **Slug verificado antes de gravar**, para o erro sair no campo em vez de rebentar a constraint da
+  base de dados com uma exceção.
+- **A primeira imagem da lista é a capa.** Não há um campo "é capa" — reordenar é o que define, e
+  o botão da estrela promove uma imagem à primeira posição.
+- **Imagens removidas desaparecem também do R2**, no mesmo `saveProduct` que grava as restantes.
+- **Pré-visualização em rota própria** (`/produtos/{slug}/previsualizar`) e não por query string na
+  página pública. Usar `searchParams` na página do catálogo tornava-a dinâmica e apagava o ISR — o
+  build deixou de mostrar a coluna `Revalidate`. Com a rota separada, a página pública continua
+  estática com `revalidate = 60` e só a pré-visualização é dinâmica.
+- **A vista do produto foi extraída para `components/public/product-view.tsx`**, partilhada pelas
+  duas rotas, para não haver duas cópias do mesmo ecrã a divergir.
+- **Upload de imagens protegido por sessão, não por Turnstile** — quem chega ao painel já é
+  administrador.
+- **Reordenação por botões e não por arrastar.** O `PLAN.md` pedia drag & drop; as setas fazem o
+  mesmo, funcionam com teclado e leitor de ecrã, e não trazem dependência nova. Registado em
+  `BLOCKERS.md`.
+
+### A testar manualmente antes de confiar nesta fase
+
+1. **Formulário em mobile:** o formulário é longo e a barra de gravar é `sticky`; convém ver num
+   telemóvel.
+2. **Editor markdown:** escrever uma descrição a sério e conferir a pré-visualização.
+3. **Imagens grandes:** as do teste eram de 4×3 pixels. Vale a pena carregar fotografias reais e
+   confirmar o recorte nos cartões e na galeria.
+4. **Acções em massa** com muitos produtos seleccionados.
+
+### Pronto para a fase seguinte
+
+- `lib/queries/admin.ts` tem o padrão de listagem com filtros e paginação que a Fase 8 vai repetir
+  para pedidos e orçamentos.
+- `presignDownload` (15 min) continua por usar — é da Fase 8.
+- O `StatCard` e o trilho já estão prontos.

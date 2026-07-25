@@ -18,7 +18,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-brand text-cream-50 hover:bg-brand-hover active:bg-brand-press",
+        default: "bg-brand text-char-900 hover:bg-brand-hover active:bg-brand-press",
         outline:
           "border-frame text-amber-500 hover:bg-brand/12 hover:text-amber-500 bg-transparent",
         secondary: "bg-secondary text-secondary-foreground hover:bg-accent",

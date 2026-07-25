@@ -229,3 +229,17 @@ Qualquer uma destas contas vê todos os pedidos, todos os contactos de clientes 
 **Acção humana necessária:** antes do lançamento, apagar `admin@oficinarasse.local` e confirmar que
 a password da conta real é forte. Nunca correr o seed contra a base de produção — o `pnpm db:reset`
 apaga o schema `public` inteiro.
+
+---
+
+## [Fase 7] Reordenação por botões em vez de arrastar
+
+**O quê:** o `PLAN.md` pede reordenação de imagens por drag & drop. Foi feita com setas
+("mover para trás" / "mover para a frente") e um botão de estrela para promover a capa.
+
+**Porquê:** drag & drop acessível exige uma biblioteca (`dnd-kit` ou equivalente), que está fora da
+lista de dependências do `CLAUDE.md`. As setas fazem exactamente o mesmo, funcionam com teclado e
+com leitor de ecrã, e não trazem dependência nova. O mesmo vale para as variantes e as categorias.
+
+**Acção humana necessária:** autorizar `dnd-kit` se o arrastar for mesmo importante. A estrutura de
+dados (posição pela ordem do array) não muda.
