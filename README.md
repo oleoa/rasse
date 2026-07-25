@@ -127,6 +127,62 @@ shell. Mínimo de 10 caracteres, guardada com bcrypt a 12 rounds.
 A sessão é um JWT assinado com `AUTH_SECRET`. **O valor tem de ser o mesmo em todos os ambientes de
 um mesmo deploy** — mudá-lo invalida todas as sessões activas.
 
+## Arquitetura em duas linhas
+
+O site público é estático com ISR de 60 segundos, e as mutações do painel fazem `revalidatePath`
+das rotas afectadas — por isso publicar um produto aparece no catálogo em segundos, sem esperar
+pelo relógio. Nada do que vem do browser é aceite como verdade: preços, nomes e disponibilidade são
+sempre recarregados da base de dados antes de gravar.
+
+| Camada          | Onde vive                                                               |
+| --------------- | ----------------------------------------------------------------------- |
+| Público         | `app/(public)/` — catálogo, cesta, orçamento, legal                     |
+| Painel          | `app/(dashboard)/` — fechado por `middleware.ts`                        |
+| Login           | `app/(auth)/dashboard/login/` — fora do ramo protegido, senão era ciclo |
+| Leitura da BD   | `lib/queries/` — nenhum componente importa `db` directamente            |
+| Escrita da BD   | `lib/mutations/` — Server Actions com Zod                               |
+| Regras de dados | `db/schema.ts` — enums, índices e check constraints                     |
+
+## Deploy na Vercel
+
+1. Ligar o repositório à Vercel. O `pnpm build` já é o comando certo.
+2. Copiar **todas** as variáveis de `.env.example` para as variáveis de ambiente do projeto.
+   Atenção às que têm de ser iguais entre ambientes: `AUTH_SECRET` (muda-la desliga todas as
+   sessões) e `CRON_SECRET`.
+3. `NEXT_PUBLIC_SITE_URL` tem de apontar para o domínio final — é o que alimenta o `sitemap.xml`,
+   o `robots.txt` e as metatags Open Graph.
+4. Acrescentar o domínio novo à política de CORS dos **dois** buckets do R2 e aos hostnames do
+   widget Turnstile.
+5. O cron da agregação está em `vercel.json` e corre às 06:00 UTC (03:00 em São Paulo).
+
+> As variáveis `NEXT_PUBLIC_*` são embutidas no bundle durante o build. Mudá-las obriga a um novo
+> deploy — reiniciar não chega.
+
+## Criar utilizadores
+
+```bash
+pnpm user:create
+```
+
+Não há registo público. Ver a secção _Painel_, acima.
+
+## Backups
+
+O Neon guarda histórico e permite restaurar por _point-in-time_ dentro da janela do plano. Antes de
+qualquer migração destrutiva, criar um branch do Neon a partir do estado actual — é instantâneo e
+serve de rede de segurança. Nunca correr `pnpm db:reset` contra produção: apaga o schema `public`
+inteiro.
+
+Os ficheiros dos clientes vivem no bucket privado do R2 e não têm backup automático. Se forem
+críticos, activar versionamento no bucket.
+
+## Manutenção
+
+```bash
+pnpm files:clean            # mostra o que apagaria
+pnpm files:clean --apply    # apaga órfãos com mais de 24h e ficheiros com mais de 12 meses
+```
+
 ## Ambiente
 
 Todas as variáveis estão listadas em [.env.example](.env.example), sem valores. Os segredos vivem

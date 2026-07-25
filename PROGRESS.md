@@ -3,19 +3,19 @@
 Estado de execução do `PLAN.md`. Uma entrada por fase, com checklist de aceitação verificada
 item a item e o que fica pendente de verificação humana.
 
-| Fase                                     | Estado      | Data       |
-| ---------------------------------------- | ----------- | ---------- |
-| 0 — Fundações                            | concluída   | 2026-07-24 |
-| 1 — Schema e dados                       | concluída   | 2026-07-25 |
-| 2 — Design system e layout               | concluída   | 2026-07-25 |
-| 3 — Páginas públicas                     | concluída   | 2026-07-25 |
-| 4 — Cesta e envio para WhatsApp          | concluída   | 2026-07-25 |
-| 5 — Pedido de impressão personalizada    | concluída   | 2026-07-25 |
-| 6 — Autenticação e shell do dashboard    | concluída   | 2026-07-25 |
-| 7 — CRUD de produtos/categorias/settings | concluída   | 2026-07-25 |
-| 8 — Pedidos e orçamentos                 | concluída   | 2026-07-25 |
-| 9 — Analytics                            | concluída   | 2026-07-25 |
-| 10 — Lançamento                          | por começar | —          |
+| Fase                                     | Estado    | Data       |
+| ---------------------------------------- | --------- | ---------- |
+| 0 — Fundações                            | concluída | 2026-07-24 |
+| 1 — Schema e dados                       | concluída | 2026-07-25 |
+| 2 — Design system e layout               | concluída | 2026-07-25 |
+| 3 — Páginas públicas                     | concluída | 2026-07-25 |
+| 4 — Cesta e envio para WhatsApp          | concluída | 2026-07-25 |
+| 5 — Pedido de impressão personalizada    | concluída | 2026-07-25 |
+| 6 — Autenticação e shell do dashboard    | concluída | 2026-07-25 |
+| 7 — CRUD de produtos/categorias/settings | concluída | 2026-07-25 |
+| 8 — Pedidos e orçamentos                 | concluída | 2026-07-25 |
+| 9 — Analytics                            | concluída | 2026-07-25 |
+| 10 — Lançamento                          | parcial   | 2026-07-25 |
 
 ---
 
@@ -890,3 +890,53 @@ produção, qualquer ferramenta headless também não vai contar.
 ### Pronto para a fase seguinte
 
 - Falta só a Fase 10 (lançamento), que é `[HUMAN]`: domínio, deploy, conteúdo real, páginas legais.
+
+---
+
+## Fase 10 — Lançamento
+
+**Data:** 2026-07-25 · **Estado:** **parcial** — o código está feito e verificado; falta o deploy,
+que é `[HUMAN]`.
+
+### O que foi feito
+
+- **`app/sitemap.ts`** dinâmico, só com produtos publicados; **`app/robots.ts`** a bloquear
+  `/dashboard`, `/api/`, `/cesta` e as pré-visualizações; **`app/manifest.ts`** com as cores da
+  marca.
+- **`app/icon.tsx`** e **`app/opengraph-image.tsx`** gerados por `next/og` a partir do lockup
+  tipográfico — o `DESIGN.md` proíbe redesenhar a marca e os ficheiros originais não existem.
+- **`/legal/privacidade`** e **`/legal/termos`** em pt-BR, referindo a LGPD pelo nome e pela lei
+  (13.709/2018), com `{{CNPJ}}` como marcador enquanto as configurações não tiverem CNPJ. Sem
+  banner de cookies, porque não há cookies no site público.
+- **Links legais no rodapé.**
+- **`app/not-found.tsx`** e **`app/error.tsx`** com a identidade visual; a de erro mostra o `digest`
+  para se poder cruzar com os logs da Vercel.
+- **`/_ds` removido.**
+- **`README.md` final:** arquitetura, deploy, criação de utilizadores, backups e manutenção.
+
+### Checklist de aceitação
+
+| Critério                                                           | Resultado                            | Como foi verificado                                                                                                                                                                                    |
+| ------------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Lighthouse mobile ≥ 90 nas quatro categorias, na home e no produto | **OK**                               | Home: **Performance 96, Acessibilidade 100, Boas Práticas 100, SEO 100**. Página de produto: **96 / 100 / 100 / 100**. A acessibilidade subiu a 100 na home graças à correcção de contraste da Fase 7. |
+| Produção acessível no domínio, com HTTPS e sem avisos na consola   | **[pendente de verificação humana]** | Localmente, as nove rotas públicas respondem 200, as seis do painel redirecionam com 302, e o log do servidor não tem um único erro. O domínio e o HTTPS só existem depois do deploy.                  |
+| Fluxo completo em produção: produto → cesta → WhatsApp → painel    | **[pendente de verificação humana]** | O fluxo está verificado ponta a ponta em local (fases 4 e 8), mas com o número de WhatsApp placeholder. Em produção depende do número real.                                                            |
+| Upload real em produção chega ao R2 e faz download pelo painel     | **[pendente de verificação humana]** | Verificado em local com um STL de 40 MB contra o R2 verdadeiro (fases 5 e 8). Falta repetir no domínio de produção, que tem de estar no CORS dos dois buckets.                                         |
+
+Verificado também: `/sitemap.xml` lista as 12 URLs certas e nenhum rascunho ou arquivado;
+`/robots.txt` bloqueia o que devia; `/icon` e `/opengraph-image` devolvem PNG; `/_ds` passou a dar
+404; a home não tem uma única ocorrência da palavra "cookie"; e o `{{CNPJ}}` aparece nas duas
+páginas legais, como manda a secção 7 do `CLAUDE.md`.
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
+
+### O que falta, e só a pessoa pode fazer
+
+1. **Deploy na Vercel** e ligação do domínio.
+2. **Copiar as variáveis de ambiente** — ver a lista em `.env.example` e as notas em `BLOCKERS.md`.
+3. **Número de WhatsApp real** nas configurações; ainda é `550000000000`.
+4. **CNPJ**, senão as páginas legais mostram `{{CNPJ}}` em produção.
+5. **CORS dos dois buckets** e **hostnames do Turnstile** com o domínio final.
+6. **Apagar o utilizador de seed** `admin@oficinarasse.local`.
+7. **Neon:** separar branch de produção do de desenvolvimento, e confirmar a janela de restauro.
+8. **Fotografias reais** e confirmação das fontes e do logo — ver `BLOCKERS.md`.

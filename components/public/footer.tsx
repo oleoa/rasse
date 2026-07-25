@@ -53,6 +53,21 @@ export function Footer({
           </p>
         ) : null}
 
+        <nav
+          aria-label="Legal"
+          className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2"
+        >
+          <Link href="/legal/privacidade" className="text-small text-subtle hover:text-copper-300">
+            Política de Privacidade
+          </Link>
+          <span aria-hidden="true" className="text-small text-subtle">
+            ·
+          </span>
+          <Link href="/legal/termos" className="text-small text-subtle hover:text-copper-300">
+            Termos de Uso
+          </Link>
+        </nav>
+
         <p className="text-small text-subtle">{businessName}</p>
       </Container>
     </footer>
