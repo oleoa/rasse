@@ -153,76 +153,67 @@ ficar decidido antes da revisão de acessibilidade da Fase 10.
 
 ---
 
-## [Fase 5] BLOQUEIO ACTIVO — faltam as contas Cloudflare (R2 e Turnstile)
+## [Fase 5] RESOLVIDO — credenciais do R2 e do Turnstile
 
-**Estado:** a execução autónoma parou aqui. As fases 0 a 4 estão concluídas e commitadas.
+Estava aqui o bloqueio que parou a execução autónoma. Foi levantado: o bucket `rasse` existe, as
+credenciais estão no `.env.local`, a política de CORS foi aplicada por API, e o widget do Turnstile
+está criado para `strutura.ai`. A Fase 5 foi concluída e verificada contra os serviços reais.
 
-A Fase 5 está marcada `[HUMAN]` no `PLAN.md` e precisa de dois serviços externos que não existem
-ainda. Não há como avançar sem inventar credenciais ou simular os serviços — as duas coisas que o
-`CLAUDE.md` e as regras de trabalho proíbem. Os critérios de aceitação da fase são, aliás,
-impossíveis de provar sem eles: "STL de ~40 MB chega ao R2", "submeter sem Turnstile válido falha
-no servidor".
+---
 
-### 1. Cloudflare R2 — armazenamento dos ficheiros
+## [Fase 5] O widget do Turnstile só funciona em `strutura.ai`
 
-Cria um bucket em <https://dash.cloudflare.com> → R2 → _Create bucket_. Sugestão de nome:
-`rasse-uploads`. Depois, em _Manage R2 API Tokens_, cria um token com permissão de
-**Object Read & Write** limitado a esse bucket.
+**O quê:** o widget foi criado com o hostname `strutura.ai`, o que cobre esse domínio e todos os
+subdomínios. Em `localhost` a Cloudflare devolve o erro `110200` (domínio não autorizado) — que é o
+comportamento correcto, não uma avaria.
 
-Preenche em `.env.local` (e mais tarde nas variáveis de ambiente da Vercel):
+**Consequência:** o desenvolvimento local usa as chaves de teste da Cloudflare, documentadas no
+`README.md` e em comentário no `.env.local`. Elas chamam o `siteverify` verdadeiro, por isso o
+caminho da recusa continua a ser testado a sério.
 
-```
-R2_ACCOUNT_ID=            # o Account ID do Cloudflare, visível na página do R2
-R2_ACCESS_KEY_ID=         # do token criado
-R2_SECRET_ACCESS_KEY=     # do token criado, só é mostrado uma vez
-R2_BUCKET=rasse-uploads
-R2_PUBLIC_URL=            # domínio público do bucket, com https://
-```
+**Atenção:** `NEXT_PUBLIC_TURNSTILE_SITE_KEY` é embutida no bundle durante o `next build`. Trocar a
+chave exige um build novo — reiniciar o servidor não chega.
 
-O `R2_PUBLIC_URL` vem de _Settings → Public access_: ou o subdomínio `r2.dev` (bom para
-desenvolvimento) ou um domínio próprio, por exemplo `https://ficheiros.oficinarasse.com.br`
-(preferível em produção, e já previsto na Fase 10). O `next.config.ts` já o transforma
-automaticamente em `images.remotePatterns` — não é preciso mexer lá.
+**Acção humana necessária:** quando houver domínio próprio (`oficinarasse.com.br` ou outro),
+acrescentá-lo aos hostnames do widget **e** à política de CORS do bucket.
 
-**CORS do bucket** (Settings → CORS policy), sem o qual o upload directo do browser falha:
+---
 
-```json
-[
-  {
-    "AllowedOrigins": ["http://localhost:3000", "https://SEU-DOMINIO"],
-    "AllowedMethods": ["PUT"],
-    "AllowedHeaders": ["content-type"],
-    "MaxAgeSeconds": 3600
-  }
-]
-```
+## [Fase 5] Tabela `rate_limits` fora da secção 5 do CLAUDE.md — divergência
 
-### 2. Cloudflare Turnstile — anti-spam do formulário
+**O quê:** o `PLAN.md` exige rate limit por IP no endpoint de assinatura, e o critério de aceitação
+é "10 submissões seguidas do mesmo IP são travadas". A secção 5 do `CLAUDE.md` não prevê nenhuma
+tabela para isso.
 
-Em <https://dash.cloudflare.com> → Turnstile → _Add site_. Modo **Managed**, com os domínios
-`localhost` e o domínio de produção.
+**Porquê uma tabela e não memória:** na Vercel cada invocação pode cair numa instância diferente,
+e um contador em memória não é partilhado nem sobrevive. Um limitador que não trava nada seria pior
+do que não ter limitador, porque dá falsa segurança.
 
-```
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=   # a site key, é pública e vai para o browser
-TURNSTILE_SECRET_KEY=             # a secret key, só servidor
-```
+**Alternativa descartada:** Redis (Upstash) resolveria melhor, mas é uma dependência fora da lista
+do `CLAUDE.md`. A tabela usa um único `INSERT ... ON CONFLICT`, é atómica, e as linhas velhas são
+apagadas pelo `pnpm files:clean`.
 
-Para testar sem uma conta real, a Cloudflare publica chaves de teste
-(<https://developers.cloudflare.com/turnstile/troubleshooting/testing/>) que aceitam ou recusam
-sempre. Servem para exercitar o caminho do código, mas **não provam** o critério de aceitação
-"submeter sem Turnstile válido falha no servidor" contra o serviço real.
+**Acção humana necessária:** nenhuma. Fica registado por ser um desvio ao schema declarado.
 
-### 3. Já agora, para a Fase 6 (`[HUMAN]`, logo a seguir)
+---
 
-Só falta um segredo, e este posso gerar eu — diz apenas se preferes gerá-lo tu:
+---
 
-```
-AUTH_SECRET=              # 32 bytes aleatórios; `openssl rand -base64 32`
-```
+## [Fase 6] `AUTH_SECRET` por gerar
 
-### Como retomar
+**O quê:** a Fase 6 (autenticação) precisa de `AUTH_SECRET`. Não é uma conta nem um serviço — são
+32 bytes aleatórios, que posso gerar eu.
 
-Preenche o `.env.local` com o que estiver disponível e diz para continuar. Se preferires,
-posso avançar já para a **Fase 6** (autenticação e shell do dashboard), que só precisa do
-`AUTH_SECRET`, e deixar a Fase 5 para quando as chaves da Cloudflare existirem — as duas fases não
-dependem uma da outra. Isso troca a ordem do `PLAN.md`, por isso não o faço sem autorização.
+**Acção humana necessária:** dizer se preferes gerá-lo tu (`openssl rand -base64 32`) ou se posso
+gerar e escrever no `.env.local`.
+
+---
+
+## [Fase 6] Password do administrador em desenvolvimento
+
+**O quê:** `SEED_ADMIN_PASSWORD=adminrasse` está no `.env.local`. Serve para desenvolvimento, mas
+essa conta vê todos os pedidos, todos os contactos de clientes e edita preços.
+
+**Acção humana necessária:** em produção, criar o utilizador com `pnpm user:create` (Fase 6) e uma
+password forte. Nunca correr o seed contra a base de produção — o `pnpm db:reset` apaga o schema
+`public` inteiro.

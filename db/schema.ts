@@ -257,6 +257,19 @@ export const eventDaily = pgTable(
   ],
 );
 
+/**
+ * Contador de rate limit por chave (`presign:{ip}`, `orcamento:{ip}`).
+ *
+ * Não está na secção 5 do CLAUDE.md — ver BLOCKERS.md. A Fase 5 exige rate
+ * limit por IP e, em serverless, um contador em memória não sobrevive entre
+ * invocações nem é partilhado entre instâncias.
+ */
+export const rateLimits = pgTable("rate_limits", {
+  key: text().primaryKey(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull().defaultNow(),
+  count: integer().notNull().default(0),
+});
+
 export const categoriesRelations = relations(categories, ({ many }) => ({
   products: many(products),
 }));

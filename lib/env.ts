@@ -11,6 +11,9 @@ const optionalUrl = (message: string) =>
     z.url(message).optional(),
   );
 
+const required = (name: string) =>
+  z.string({ error: `${name} em falta. Ver .env.example.` }).min(1, `${name} está vazia.`);
+
 const envSchema = z.object({
   DATABASE_URL: z
     .string({ error: "DATABASE_URL em falta. Copia .env.example para .env.local e preenche-a." })
@@ -20,10 +23,20 @@ const envSchema = z.object({
       "DATABASE_URL tem de ser uma connection string Postgres (Neon), a começar por postgres://.",
     ),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  // Domínio público do bucket R2. Sem ele, só existem as imagens locais de seed.
+
+  // Cloudflare R2. Obrigatórias: sem elas não há upload de ficheiros.
+  R2_ACCOUNT_ID: required("R2_ACCOUNT_ID"),
+  R2_ACCESS_KEY_ID: required("R2_ACCESS_KEY_ID"),
+  R2_SECRET_ACCESS_KEY: required("R2_SECRET_ACCESS_KEY"),
+  R2_BUCKET: required("R2_BUCKET"),
   NEXT_PUBLIC_R2_PUBLIC_URL: optionalUrl(
     "NEXT_PUBLIC_R2_PUBLIC_URL tem de ser um URL completo, com protocolo.",
   ),
+
+  // Cloudflare Turnstile. Obrigatórias: nunca há caminho que salte a verificação.
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: required("NEXT_PUBLIC_TURNSTILE_SITE_KEY"),
+  TURNSTILE_SECRET_KEY: required("TURNSTILE_SECRET_KEY"),
+
   // URL público do site, usado como metadataBase das metatags Open Graph.
   NEXT_PUBLIC_SITE_URL: optionalUrl(
     "NEXT_PUBLIC_SITE_URL tem de ser um URL completo, com protocolo.",

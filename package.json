@@ -16,9 +16,13 @@
     "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local db/seed.ts",
     "db:drop": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/db-drop.ts",
     "db:reset": "pnpm db:drop && pnpm db:migrate && pnpm db:seed",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "files:clean": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/clean-files.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1094.0",
+    "@aws-sdk/s3-request-presigner": "^3.1094.0",
+    "@hookform/resolvers": "^5.4.0",
     "@neondatabase/serverless": "^1.1.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
@@ -29,6 +33,8 @@
     "radix-ui": "^1.6.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.82.0",
+    "server-only": "^0.0.1",
     "shadcn": "^4.14.1",
     "tailwind-merge": "^3.6.0",
     "tw-animate-css": "^1.4.0",

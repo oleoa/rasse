@@ -10,7 +10,7 @@ item a item e o que fica pendente de verificação humana.
 | 2 — Design system e layout               | concluída   | 2026-07-25 |
 | 3 — Páginas públicas                     | concluída   | 2026-07-25 |
 | 4 — Cesta e envio para WhatsApp          | concluída   | 2026-07-25 |
-| 5 — Pedido de impressão personalizada    | por começar | —          |
+| 5 — Pedido de impressão personalizada    | concluída   | 2026-07-25 |
 | 6 — Autenticação e shell do dashboard    | por começar | —          |
 | 7 — CRUD de produtos/categorias/settings | por começar | —          |
 | 8 — Pedidos e orçamentos                 | por começar | —          |
@@ -418,3 +418,105 @@ criado na Fase 4 aparece no dashboard com os snapshots intactos. `pnpm db:reset`
 - `lib/code.ts` já provado em uso real, pronto para os códigos de orçamento da Fase 5.
 - `lib/session.ts` pronto para o `/api/track` da Fase 9.
 - Há dados reais em `carts` e `cart_items` para a Fase 8 consumir.
+
+---
+
+## Fase 5 — Pedido de impressão personalizada
+
+**Data:** 2026-07-25 · **Estado:** concluída
+
+A fase estava marcada `[HUMAN]` e chegou a parar a execução autónoma. Foi desbloqueada quando o
+bucket R2 e o widget do Turnstile passaram a existir.
+
+### O que foi feito
+
+- **`lib/r2.ts`:** cliente S3 apontado ao R2, assinatura de upload (5 min) e de download (15 min,
+  para a Fase 8), leitura dos primeiros bytes por `Range`, listagem e apagamento em lote.
+- **`lib/uploads.ts`:** whitelist de 13 extensões com os mimes aceitáveis para cada uma, limites de
+  50 MB e 5 ficheiros, e inspecção de assinatura de conteúdo.
+- **`lib/turnstile.ts`:** `siteverify` com timeout, sem nenhum caminho que salte a verificação.
+- **`lib/rate-limit.ts`:** contador por janela deslizante na base de dados, atómico num único
+  `INSERT ... ON CONFLICT`. Nova tabela `rate_limits` (migration `0001`) — ver `BLOCKERS.md`.
+- **`POST /api/uploads/presign`:** rate limit → Zod → Turnstile → whitelist → gera o código do
+  pedido → devolve até 5 URLs assinados. Um token do Turnstile é de uso único, por isso assina o
+  pedido inteiro de uma vez.
+- **`lib/mutations/quotes.ts`:** Server Action que valida, confirma no bucket que cada ficheiro
+  existe, mede o tamanho **real**, inspecciona o conteúdo, e só então cria `quote_requests` +
+  `quote_files` e regista `quote_submitted`.
+- **`components/public/turnstile.tsx`:** carrega o script uma só vez e expõe `getFreshToken()`, que
+  reinicia o widget — o formulário precisa de dois tokens, um para assinar e outro para submeter.
+- **`components/public/quote-form.tsx`:** react-hook-form + Zod, dropzone com arrastar e largar,
+  barra de progresso por ficheiro, cancelar e remover, validação no cliente antes de pedir
+  assinatura, e ecrã de sucesso com o código e botão para o WhatsApp.
+- **`lib/upload-client.ts`:** `PUT` por XMLHttpRequest, que é o único que reporta progresso.
+- **`scripts/clean-files.ts`** e `pnpm files:clean`: órfãos com mais de 24h, retenção de 12 meses,
+  e purga dos contadores de rate limit. Por defeito simula; `--apply` é que apaga.
+- **CORS do bucket** aplicado por API e documentado no `README.md`.
+
+### Checklist de aceitação
+
+Verificada contra os serviços reais — R2 verdadeiro e `siteverify` verdadeiro da Cloudflare — em
+Chrome headless e por chamadas directas à API. **Todos os checks passaram.**
+
+| Critério                                             | Resultado | Como foi verificado                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| STL de ~40 MB chega ao R2; a Vercel nunca vê o corpo | OK        | Formulário preenchido em browser com um STL ASCII de 41 943 040 bytes. Submetido em 10 s. **Contando todo o tráfego não-GET para a aplicação: 493 bytes** — o ficheiro foi inteiro para `rasse.871617….r2.cloudflarestorage.com`. `HeadObject` confirma 41 943 040 bytes no bucket, e `quote_files.size_bytes` guarda o tamanho medido no bucket, não o declarado pelo browser.                                                            |
+| `.exe` renomeado para `.stl` é rejeitado             | OK        | Ficheiro com cabeçalho `MZ` (PE do Windows) chamado `inofensivo.stl`. Passa a validação de metadados — o browser deduz o mime da extensão, não do conteúdo — sobe para o bucket, e a Server Action recusa-o ao ler os primeiros bytes: _"O conteúdo de «inofensivo.stl» é um executável do Windows (PE/DOS), não o formato indicado."_ Nenhuma linha criada e o objecto **apagado do bucket**. Um STL verdadeiro passa na mesma inspecção. |
+| Submeter sem Turnstile válido falha no servidor      | OK        | Com a **secret key real**: sem token → **400**; token inventado → **403**. Com a secret de teste que recusa sempre → **403**. Em todos os casos o `siteverify` da Cloudflare foi mesmo chamado.                                                                                                                                                                                                                                            |
+| 10 submissões seguidas do mesmo IP são travadas      | OK        | 10 pedidos consecutivos com o mesmo `x-forwarded-for`: `200, 200, 200, 200, 200, 429, 429, 429, 429, 429`. Contador na base de dados a 10, limite 5 por 10 minutos.                                                                                                                                                                                                                                                                        |
+
+Verificado no mesmo percurso: extensões fora da whitelist (`.exe`, `.sh`, `.zip`, `.docx`, sem
+extensão) recusadas com 422; acima de 50 MB recusado; `.png` com mime incoerente recusado; mais de
+5 ficheiros recusado com 400; chave no formato `quotes/{code}/{uuid}.{ext}`; assinatura com
+`X-Amz-Expires=300`; formulário sem ficheiros aceite; validação no cliente a impedir a ida ao
+servidor; nome com acentos gravado intacto; e o script de limpeza a apagar um órfão sem tocar no
+ficheiro do pedido real.
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
+
+### Bug encontrado e corrigido durante a verificação
+
+`addFiles` fazia `Array.from(incoming)` **dentro** do updater do `setAttachments`. O React só
+executa o updater na fase de render, e nessa altura o `event.target.value = ""` já tinha limpado o
+input — o `FileList` chegava vazio. Resultado: escolher ficheiros pelo botão não fazia nada. A
+correcção é capturar os ficheiros para um array antes de chamar o `setState`. Como no bug da Fase
+4, isto compila, tipa e passa no lint sem uma queixa.
+
+### Decisões tomadas
+
+- **Um presign para o pedido inteiro, não um por ficheiro.** Os tokens do Turnstile são de uso
+  único; assinar ficheiro a ficheiro exigiria um token por ficheiro.
+- **O código do pedido é gerado no presign**, para as chaves ficarem no formato
+  `quotes/{quote_code}/{uuid}.{ext}` que o `CLAUDE.md` exige. A linha em `quote_requests` só nasce
+  na submissão. Na submissão, o servidor confirma que o código continua livre e que **todas** as
+  chaves lhe pertencem — senão um cliente podia apontar para ficheiros de outro pedido.
+- **Inspecção de conteúdo depois do upload, não antes.** Não há como verificar bytes que ainda não
+  existem. Lê-se um `Range` de 16 bytes, compara-se com assinaturas de executáveis e, para os
+  formatos que têm assinatura fiável (pdf, png, jpg, webp, 3mf, ai), exige-se a correcta.
+- **Tamanho lido do bucket, não do browser.** `quote_files.size_bytes` vem do `HeadObject`.
+- **Ficheiros recusados são apagados do bucket** antes de a submissão falhar.
+- **Rate limit na base de dados** e não em memória — justificação em `BLOCKERS.md`.
+- **`server-only` nos módulos com segredos** (`lib/r2.ts`, `lib/turnstile.ts`, `lib/rate-limit.ts`),
+  para o build falhar se algum for importado por engano para o cliente.
+- **XMLHttpRequest no upload**, porque o `fetch` não reporta progresso de upload.
+
+### A testar manualmente antes de confiar nesta fase
+
+1. **O widget real, no domínio real.** Toda a verificação em `localhost` usou as chaves de teste,
+   porque o widget está preso a `strutura.ai`. Depois do deploy, submeter um pedido a sério e
+   confirmar que o widget aparece e valida.
+2. **Arrastar e largar**, cancelar um upload a meio e remover ficheiros — o comportamento foi
+   verificado pelo input, não pelo gesto de arrastar.
+3. **Ligação lenta:** começar um upload de 40 MB e cancelar, para ver a barra e o cancelamento.
+4. Confirmar que o número de WhatsApp no ecrã de sucesso é o real (ainda é o placeholder).
+
+### Estado no fim da fase
+
+Dois pedidos na base de dados: `RS-JEPUBG47` (com um STL de 40 MB no bucket) e `RS-757WF8HH` (sem
+ficheiros). Servem à Fase 8, que tem de os mostrar no dashboard com download por URL assinado.
+
+### Pronto para a fase seguinte
+
+- `lib/r2.ts` já expõe `presignDownload` com 15 minutos, que é o que a Fase 8 pede.
+- `lib/rate-limit.ts` reutilizável no `/api/track` da Fase 9.
+- Falta `AUTH_SECRET` para a Fase 6 — ver `BLOCKERS.md`.
