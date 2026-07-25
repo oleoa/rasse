@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Lora, Oswald, Playfair_Display } from "next/font/google";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -24,7 +25,7 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Oficina Rassë",
     template: "%s — Oficina Rassë",

@@ -9,6 +9,7 @@ import { CopperRule, Eyebrow } from "@/components/public/typography";
 import { Button } from "@/components/ui/button";
 import { imageUrl } from "@/lib/images";
 import { Markdown } from "@/lib/markdown";
+import { SITE_URL } from "@/lib/site";
 import {
   getProductBySlug,
   getPublishedProductSlugs,
@@ -63,8 +64,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ slug: 
 
   const cover = product.images[0];
   // O JSON-LD precisa de URLs absolutos; imageUrl devolve caminhos locais para o seed.
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const coverUrl = cover ? new URL(imageUrl(cover.r2Key), siteUrl).toString() : undefined;
+  const coverUrl = cover ? new URL(imageUrl(cover.r2Key), SITE_URL).toString() : undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",
