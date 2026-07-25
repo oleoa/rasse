@@ -14,7 +14,7 @@ item a item e o que fica pendente de verificação humana.
 | 6 — Autenticação e shell do dashboard    | concluída   | 2026-07-25 |
 | 7 — CRUD de produtos/categorias/settings | concluída   | 2026-07-25 |
 | 8 — Pedidos e orçamentos                 | concluída   | 2026-07-25 |
-| 9 — Analytics                            | por começar | —          |
+| 9 — Analytics                            | concluída   | 2026-07-25 |
 | 10 — Lançamento                          | por começar | —          |
 
 ---
@@ -810,3 +810,83 @@ tinha aparecido antes porque o teste da Fase 4 substituía `window.open` por uma
 - Falta a Fase 9 (analytics) e a Fase 10 (lançamento).
 - `lib/rate-limit.ts` está pronto para o `/api/track`.
 - Os eventos `cart_sent` e `quote_submitted` já estão a ser gravados desde as fases 4 e 5.
+
+---
+
+## Fase 9 — Analytics
+
+**Data:** 2026-07-25 · **Estado:** concluída
+
+### O que foi feito
+
+- **`POST /api/track`:** Zod, sem cookies, ignora tráfego autenticado e bots óbvios, rate limit de
+  120 por minuto por IP. Aceita apenas `page_view`, `product_view` e `add_to_cart` — `cart_sent` e
+  `quote_submitted` são gravados pelas Server Actions que os originam, onde não há como
+  falsificá-los.
+- **`lib/track.ts`** com `navigator.sendBeacon`, para o pedido sobreviver a sair da página.
+- **`PageTracker`** no layout público (`page_view`) e **`ProductViewTracker`** na vista de produto
+  (`product_view`), separados para o `page_view` não ser contado duas vezes. `add_to_cart` sai do
+  botão de adicionar.
+- **`lib/mutations/aggregate.ts`:** agregação idempotente para `event_daily`, com o dia civil em
+  `America/Sao_Paulo` e não em UTC.
+- **`GET /api/cron/agregar`** protegido por `CRON_SECRET`, e `vercel.json` com o cron às 06:00 UTC,
+  que são 03:00 em São Paulo. Agrega ontem e hoje, para apanhar eventos que cheguem depois da
+  meia-noite.
+- **`lib/queries/analytics.ts`:** visitas por dia com os dias vazios a zero, top 10 de vistos e de
+  adicionados, cestas e orçamentos por semana, e a taxa `add_to_cart → cart_sent`.
+- **`/dashboard`** com selector de 7 / 30 / 90 dias, oito cartões e quatro painéis com gráficos
+  Recharts nas cores quentes da marca, com estado vazio próprio.
+
+### Checklist de aceitação
+
+Verificada em Chrome headless contra o build de produção, cruzando cada número com SQL.
+**Todos os checks passaram.**
+
+| Critério                                                              | Resultado | Como foi verificado                                                                                                                                                                                                                                                                                                              |
+| --------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Números dos gráficos batem certo com `SELECT count(*)` sobre `events` | OK        | Depois de apagar `event_daily` e correr o cron, cada linha agregada foi comparada com o `count(*)` agrupado por `(type, product_id)` sobre `events`, filtrado pelo dia civil em São Paulo: 5 grupos, 5 linhas, todas com a mesma contagem. O número de visitas mostrado no painel é o mesmo que o `sum(count)` da base de dados. |
+| Correr a agregação duas vezes para o mesmo dia não duplica            | OK        | Corrida mais duas vezes seguidas: soma manteve-se em **15** e o número de linhas em **6**. O `ON CONFLICT` escreve o valor recontado por cima, em vez de somar.                                                                                                                                                                  |
+| Navegar no dashboard não gera eventos                                 | OK        | Com sessão de administrador, quatro rotas do painel **e** uma página pública: `count(*)` sobre `events` ficou em 14 antes e 14 depois. O endpoint devolve 204 sem gravar quando `auth()` traz utilizador.                                                                                                                        |
+
+Verificado no mesmo percurso: `page_view` e `product_view` gravados ao navegar, sem duplicar o
+`page_view` na página de produto; `add_to_cart` com o `product_id` certo; **zero cookies** no site
+público e o `session_id` em `sessionStorage`; `Googlebot`, `curl`, `python-requests` e user-agent
+vazio ignorados; tentar gravar `cart_sent` pelo endpoint dá 400; e o cron devolve 401 sem segredo
+ou com o segredo errado.
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
+
+### Nota sobre o filtro de bots
+
+Na primeira execução do teste **nenhum** evento era gravado. A causa era o filtro a funcionar: o
+puppeteer anuncia-se como `HeadlessChrome`, que a expressão de bots apanha. O teste passou a usar
+um user-agent de browser real. Fica registado porque é fácil confundir isto com uma avaria: em
+produção, qualquer ferramenta headless também não vai contar.
+
+### Decisões tomadas
+
+- **`cart_sent` e `quote_submitted` não passam pelo endpoint público.** São escritos pelas Server
+  Actions da Fase 4 e da Fase 5. O endpoint recusa-os explicitamente — senão qualquer pessoa
+  inflacionava as métricas de negócio com um `curl`.
+- **Dia civil em `America/Sao_Paulo`.** Agregar por dia UTC punha a fronteira às 21h para quem está
+  no Brasil, e as visitas do fim da tarde caíam no dia seguinte.
+- **O cron agrega ontem e hoje**, não só ontem, para apanhar eventos que cheguem entre a meia-noite
+  e as 03:00.
+- **Séries com os dias vazios a zero**, geradas por `generate_series`. Sem isso, o gráfico salta os
+  dias sem visitas e mente sobre a forma da curva.
+- **Gráficos só com tons quentes** (`--chart-1` a `--chart-5`), porque o `DESIGN.md` proíbe cor fria.
+- **O painel avisa que os números vêm da agregação das 03:00**, para não parecer avariado quando os
+  eventos de hoje ainda não aparecem.
+
+### A testar manualmente antes de confiar nesta fase
+
+1. **O cron na Vercel.** Só corre em produção; localmente foi chamado à mão. Depois do deploy,
+   confirmar no separador Cron que corre e devolve 200.
+2. **`CRON_SECRET` nas variáveis da Vercel** — sem ele o endpoint fica aberto a quem souber o URL.
+3. Navegar no site com o browser normal e confirmar no painel que as visitas sobem depois de
+   correr a agregação.
+4. Confirmar que os gráficos ficam legíveis em mobile.
+
+### Pronto para a fase seguinte
+
+- Falta só a Fase 10 (lançamento), que é `[HUMAN]`: domínio, deploy, conteúdo real, páginas legais.

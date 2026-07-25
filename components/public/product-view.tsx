@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Container } from "@/components/public/container";
 import { ProductGallery } from "@/components/public/product-gallery";
 import { ProductGrid } from "@/components/public/product-card";
+import { ProductViewTracker } from "@/components/public/page-tracker";
 import { ProductPurchase } from "@/components/public/product-purchase";
 import { CopperRule, Eyebrow } from "@/components/public/typography";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,8 @@ export function ProductView({
         // JSON serializado, sem input do utilizador na estrutura.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      <ProductViewTracker productId={product.id} />
 
       {aviso}
 

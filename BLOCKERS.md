@@ -276,3 +276,18 @@ acesso a projetos que não têm nada a ver com este.
 **Acção humana necessária:** criar um token novo com permissão _Object Read & Write_ limitada
 apenas a `rasse` e `rasse-privado`, e substituir `R2_ACCESS_KEY_ID` e `R2_SECRET_ACCESS_KEY`. O
 código não precisa de mudar — só deixa de conseguir criar buckets, o que já não é preciso.
+
+---
+
+## [Fase 9] `CRON_SECRET` tem de ir para a Vercel
+
+**O quê:** foi gerado um `CRON_SECRET` e escrito no `.env.local`. O endpoint
+`/api/cron/agregar` aceita o header `x-vercel-cron` (que a Vercel envia) ou
+`Authorization: Bearer <CRON_SECRET>`.
+
+**Risco se faltar:** sem o segredo definido em produção, o endpoint fica acessível a quem souber o
+URL. Não apaga nada — só recalcula agregados — mas é trabalho de base de dados à borla para
+qualquer pessoa.
+
+**Acção humana necessária:** copiar `CRON_SECRET` para as variáveis de ambiente da Vercel, e
+confirmar no separador Cron que a agregação corre às 06:00 UTC (03:00 em São Paulo).

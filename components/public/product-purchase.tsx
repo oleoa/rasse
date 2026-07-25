@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MAX_LINES, useCartStore } from "@/lib/cart/store";
 import { useCart } from "@/lib/cart/use-cart";
+import { track } from "@/lib/track";
 import { cn } from "@/lib/utils";
 import type { ProductDetail } from "@/lib/queries/products";
 
@@ -41,6 +42,8 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
       unitPriceCents: priceCents,
       imageKey: product.images[0]?.r2Key ?? null,
     });
+
+    track("add_to_cart", { productId: product.id });
 
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2500);

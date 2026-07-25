@@ -1,5 +1,6 @@
 import { Footer } from "@/components/public/footer";
 import { Header } from "@/components/public/header";
+import { PageTracker } from "@/components/public/page-tracker";
 import { getSettings } from "@/lib/queries/settings";
 
 export const revalidate = 60;
@@ -9,6 +10,7 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <div className="flex min-h-dvh flex-col">
+      <PageTracker />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer
