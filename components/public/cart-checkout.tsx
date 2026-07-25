@@ -35,8 +35,12 @@ export function CartCheckout({
     setPending(true);
     setError(null);
 
-    // Aberta antes do await: depois da resposta, o browser bloqueia o popup.
-    const janela = window.open("", "_blank", "noopener,noreferrer");
+    // Aberta antes do await: depois da resposta, o browser trata o window.open
+    // como popup e bloqueia-o. Sem "noopener" nas features, porque com ele o
+    // window.open devolve null e não haveria handle para navegar; a referência
+    // é cortada com opener = null enquanto a aba ainda está em about:blank.
+    const janela = window.open("", "_blank");
+    if (janela) janela.opener = null;
 
     try {
       const result = await createCartAndGetWhatsappUrl({

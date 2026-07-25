@@ -11,10 +11,13 @@ import { cn } from "@/lib/utils";
 
 export function DashboardShell({
   user,
+  novos,
   onSignOut,
   children,
 }: {
   user: { name?: string | null; email?: string | null };
+  /** Contagem por href, para o badge de "novos" na sidebar. */
+  novos: Record<string, number>;
   onSignOut: () => Promise<void>;
   children: React.ReactNode;
 }) {
@@ -86,7 +89,17 @@ export function DashboardShell({
                   : "text-body hover:bg-accent hover:text-display",
               )}
             >
-              {item.label}
+              <span className="flex items-center justify-between gap-2">
+                {item.label}
+                {novos[item.href] ? (
+                  <span
+                    className="inline-flex min-w-5 items-center justify-center rounded-full bg-brand px-1.5 py-0.5 font-accent text-[10px] leading-none text-char-900"
+                    aria-label={`${novos[item.href]} por ver`}
+                  >
+                    {novos[item.href]}
+                  </span>
+                ) : null}
+              </span>
             </Link>
           ))}
         </nav>

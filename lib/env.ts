@@ -29,6 +29,8 @@ const envSchema = z.object({
   R2_ACCESS_KEY_ID: required("R2_ACCESS_KEY_ID"),
   R2_SECRET_ACCESS_KEY: required("R2_SECRET_ACCESS_KEY"),
   R2_BUCKET: required("R2_BUCKET"),
+  // Bucket sem acesso público, só para os ficheiros dos clientes.
+  R2_PRIVATE_BUCKET: required("R2_PRIVATE_BUCKET"),
   NEXT_PUBLIC_R2_PUBLIC_URL: optionalUrl(
     "NEXT_PUBLIC_R2_PUBLIC_URL tem de ser um URL completo, com protocolo.",
   ),

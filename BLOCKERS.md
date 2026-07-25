@@ -243,3 +243,36 @@ com leitor de ecrã, e não trazem dependência nova. O mesmo vale para as varia
 
 **Acção humana necessária:** autorizar `dnd-kit` se o arrastar for mesmo importante. A estrutura de
 dados (posição pela ordem do array) não muda.
+
+---
+
+## [Fase 8] Bucket privado criado — confirmar no painel da Cloudflare
+
+**O quê:** foi criado o bucket **`rasse-privado`** pela API do R2, para os ficheiros dos clientes.
+O bucket `rasse` continua público (imagens de produto); o novo tem de continuar **sem acesso
+público**, senão o problema volta.
+
+**Porquê:** o acesso público no R2 é do bucket inteiro. Com tudo no mesmo bucket, os STL e
+documentos enviados pelos clientes eram descarregáveis por qualquer pessoa que tivesse o URL.
+
+**Acção humana necessária:**
+
+1. No painel do R2, confirmar que `rasse-privado` tem _Public access_ **desactivado**.
+2. Acrescentar `R2_PRIVATE_BUCKET=rasse-privado` às variáveis de ambiente da Vercel.
+3. A política de CORS já foi aplicada ao bucket novo por API; ao mudar de domínio, actualizar os
+   dois buckets.
+
+---
+
+## [Fase 8] O token do R2 tem mais permissões do que precisa
+
+**O quê:** ao criar o bucket privado percebeu-se que o token consegue **listar todos os buckets da
+conta** (`aviadores-private`, `aviadores-public`, `crm`, `dran`, `laranja-resgate`, `oleoa`,
+`rasse`, `studio`) e **criar buckets novos**. Ou seja, não está limitado ao projeto Rassë.
+
+**Risco:** se este token vazar — está nas variáveis de ambiente da Vercel e no `.env.local` — dá
+acesso a projetos que não têm nada a ver com este.
+
+**Acção humana necessária:** criar um token novo com permissão _Object Read & Write_ limitada
+apenas a `rasse` e `rasse-privado`, e substituir `R2_ACCESS_KEY_ID` e `R2_SECRET_ACCESS_KEY`. O
+código não precisa de mudar — só deixa de conseguir criar buckets, o que já não é preciso.

@@ -13,7 +13,7 @@ item a item e o que fica pendente de verificação humana.
 | 5 — Pedido de impressão personalizada    | concluída   | 2026-07-25 |
 | 6 — Autenticação e shell do dashboard    | concluída   | 2026-07-25 |
 | 7 — CRUD de produtos/categorias/settings | concluída   | 2026-07-25 |
-| 8 — Pedidos e orçamentos                 | por começar | —          |
+| 8 — Pedidos e orçamentos                 | concluída   | 2026-07-25 |
 | 9 — Analytics                            | por começar | —          |
 | 10 — Lançamento                          | por começar | —          |
 
@@ -712,3 +712,101 @@ O contador da cesta seguiu a mesma mudança. O botão destrutivo já passava, co
   para pedidos e orçamentos.
 - `presignDownload` (15 min) continua por usar — é da Fase 8.
 - O `StatCard` e o trilho já estão prontos.
+
+---
+
+## Fase 8 — Pedidos e orçamentos
+
+**Data:** 2026-07-25 · **Estado:** concluída
+
+### O que foi feito
+
+- **`lib/queries/requests.ts`:** listagens com pesquisa, filtro por estado e paginação, detalhe por
+  código, e contagem de novos para o badge da sidebar.
+- **`lib/request-status.ts`:** rótulos e variantes dos estados, fora do módulo `server-only` para
+  poderem ser usados nos componentes de cliente.
+- **`lib/mutations/requests.ts`:** mudar estado, gravar notas internas, e gerar URL assinado de
+  download — as três exigem sessão.
+- **`/dashboard/pedidos`** com código, data, nome, número de itens, subtotal e estado.
+- **`/dashboard/pedidos/[code]`** com os itens e os seus snapshots, texto de personalização em
+  destaque, total (ou subtotal parcial), aviso quando o produto foi apagado do catálogo, e botão
+  para abrir o WhatsApp já com o código na mensagem.
+- **`/dashboard/orcamentos`** e **`/dashboard/orcamentos/[code]`** com a mensagem completa, lista
+  de ficheiros com tamanho e ícone por tipo, download por URL assinado de 15 minutos, e
+  pré-visualização para imagens.
+- **Botão de WhatsApp do cliente** nos orçamentos, só quando o contacto parece um número
+  brasileiro (`lib/contact.ts`).
+- **Estado e notas** num painel lateral partilhado pelos dois tipos; as notas gravam sozinhas com
+  debounce de 800 ms.
+- **Badge de novos** na sidebar, alimentado por `countNovos()`.
+
+### Checklist de aceitação
+
+Verificada em Chrome headless contra o build de produção, cruzando com a base de dados e com o R2.
+**Todos os checks passaram.**
+
+| Critério                                                          | Resultado | Como foi verificado                                                                                                                                                                                                                                                                       |
+| ----------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Um pedido criado na Fase 4 aparece aqui com os snapshots intactos | OK        | `RS-TBWP5FY9`, criado na Fase 4, aparece na lista e no detalhe com "Tábua de Churrasco Rústica", a variante "Média", o preço `R$ 189,00` e o item sob consulta como "A combinar" — cada valor comparado com a linha de `cart_items` na base de dados. O subtotal parcial está assinalado. |
+| Download de ficheiro sem sessão activa é negado                   | OK        | Sem cookie, a página do orçamento redireciona para o login (302). A Server Action que gera o URL exige sessão. **E o objecto deixou de ser publicamente legível** — ver a secção seguinte.                                                                                                |
+| Mudança de estado persiste após refresh                           | OK        | Marcar "Contactado" gravou `status = 'contactado'` na base de dados; depois de `reload`, o rádio continua marcado. As notas internas gravaram sozinhas e sobreviveram ao refresh.                                                                                                         |
+
+Verificado no mesmo percurso: o download arranca mesmo (evento capturado por CDP), vem do bucket
+**privado**, tem `X-Amz-Expires=900`, preserva o nome do ficheiro, devolve os 41 943 040 bytes
+certos, e a página não sai do orçamento. O badge de novos bate certo com a base de dados (4 e 2), e
+os filtros e a pesquisa funcionam.
+
+Gates: `pnpm typecheck`, `pnpm lint` e `pnpm build` passam.
+
+### Problema de segurança encontrado e corrigido
+
+**Os ficheiros dos clientes estavam publicamente acessíveis.** O bucket `rasse` tem acesso público
+activado — é o que permite servir as imagens dos produtos — e o acesso público no R2 é do bucket
+inteiro. Os STL e documentos enviados pelo formulário de orçamento viviam no mesmo bucket, por isso
+qualquer pessoa com o URL descarregava-os sem sessão nenhuma. As chaves são uuid, o que torna o
+acesso improvável, mas isso é segurança por obscuridade, não segurança.
+
+Correcção: **dois buckets**. `rasse` continua público, só com `products/` e `seed/`; foi criado
+`rasse-privado`, sem acesso público, para `quotes/`. O `lib/r2.ts` escolhe o bucket pelo prefixo da
+chave, por isso não há forma de enganar-se ao chamar. O ficheiro que já existia foi migrado e
+apagado do bucket público. Antes: `HEAD` ao URL público devolvia **200**. Depois: **404**.
+
+### Outro bug encontrado, que vinha da Fase 4
+
+`window.open("", "_blank", "noopener,noreferrer")` **devolve `null`** — a especificação diz que com
+`noopener` não há handle. A aba do WhatsApp na Fase 4 e o download aqui nunca eram navegados. Não
+tinha aparecido antes porque o teste da Fase 4 substituía `window.open` por uma função que devolvia
+`null`, e o código tratava isso como "popup bloqueado" e mostrava o botão manual.
+
+- Na cesta: `window.open("", "_blank")` sem `noopener`, com `janela.opener = null` logo a seguir,
+  enquanto a aba ainda está em `about:blank` e é do mesmo domínio.
+- No download: nem sequer é preciso abrir aba. O URL assinado vem com
+  `Content-Disposition: attachment`, por isso `window.location.href` arranca o download sem sair da
+  página nem deixar uma aba vazia para trás.
+
+### Decisões tomadas
+
+- **`lib/request-status.ts` separado das queries.** O `server-only` no módulo de queries fez o build
+  falhar quando um componente de cliente importou os rótulos — exactamente o que essa marcação
+  existe para apanhar.
+- **Notas com gravação automática e debounce**, em vez de um botão de guardar. É o ecrã que ele vai
+  usar todos os dias.
+- **Botão de WhatsApp só quando o contacto parece um número.** O campo é texto livre e recebe
+  emails; abrir o `wa.me` com um email dava uma conversa vazia.
+- **Estado por rádios visíveis** e não por dropdown: quatro opções, todas à vista, um clique.
+
+### A testar manualmente antes de confiar nesta fase
+
+1. **Download de um STL grande** a partir do painel, e abrir o ficheiro para confirmar que não veio
+   corrompido.
+2. **Pré-visualização de imagens** num orçamento que traga fotografias.
+3. **Notas internas** com texto longo, a confirmar que o debounce não perde nada ao sair da página
+   depressa.
+4. Confirmar no painel da Cloudflare que o bucket `rasse-privado` **não** tem acesso público
+   activado.
+
+### Pronto para a fase seguinte
+
+- Falta a Fase 9 (analytics) e a Fase 10 (lançamento).
+- `lib/rate-limit.ts` está pronto para o `/api/track`.
+- Os eventos `cart_sent` e `quote_submitted` já estão a ser gravados desde as fases 4 e 5.
