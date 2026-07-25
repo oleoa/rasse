@@ -8,10 +8,10 @@ import { env } from "@/lib/env";
 export const metadata: Metadata = {
   title: "Peça personalizada",
   description:
-    "Envia a tua ideia e os ficheiros. Fazemos peças sob medida em impressão 3D e gravação a laser.",
+    "Envie sua ideia e os arquivos. Fazemos peças sob medida em impressão 3D e gravação a laser.",
   openGraph: {
     title: "Peça personalizada — Oficina Rassë",
-    description: "Envia a tua ideia e os ficheiros para uma peça sob medida.",
+    description: "Envie sua ideia e os arquivos para uma peça sob medida.",
     type: "website",
     locale: "pt_BR",
   },
@@ -27,7 +27,7 @@ export default function PersonalizadoPage() {
             Cada detalhe conta uma <Accent>história</Accent>.
           </>
         }
-        description="Manda a ideia e, se tiveres, os ficheiros. Respondemos pelo contacto que deixares."
+        description="Mande a ideia e, se tiver, os arquivos. Respondemos pelo contato que você deixar."
       />
 
       <Container className="pb-20">

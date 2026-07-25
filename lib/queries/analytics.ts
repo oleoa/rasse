@@ -91,7 +91,7 @@ export type Resumo = {
   adicoes: number;
   cestasEnviadas: number;
   orcamentos: number;
-  /** add_to_cart → cart_sent, em percentagem. */
+  /** add_to_cart → cart_sent, em porcentagem. */
   taxaConversao: number | null;
 };
 

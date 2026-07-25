@@ -13,7 +13,7 @@ function remotePatterns(): NonNullable<NextConfig["images"]>["remotePatterns"] {
   try {
     url = new URL(raw);
   } catch {
-    throw new Error(`NEXT_PUBLIC_R2_PUBLIC_URL não é um URL válido: ${raw}`);
+    throw new Error(`NEXT_PUBLIC_R2_PUBLIC_URL não é uma URL válido: ${raw}`);
   }
 
   return [

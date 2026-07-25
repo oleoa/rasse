@@ -12,8 +12,8 @@ const MAX_LINES = 50;
 
 /**
  * O cliente manda apenas identificadores, quantidades e texto. Nome, preço e
- * disponibilidade vêm sempre da base de dados — adulterar o localStorage não
- * altera nada do que é gravado.
+ * disponibilidade vêm sempre do banco de dados — adulterar o localStorage não
+ * altera nada do que é salvo.
  */
 const inputSchema = z.object({
   customerName: z.string().trim().max(80).nullable(),
@@ -40,7 +40,7 @@ export type CreateCartResult =
       code: string;
       whatsappUrl: string;
       message: string;
-      /** Ids que já não estavam publicados e ficaram de fora. */
+      /** Ids que não estavam mais publicados e ficaram de fora. */
       removedProductIds: string[];
       subtotalCents: number;
       hasOnRequestItems: boolean;
@@ -51,7 +51,7 @@ export async function createCartAndGetWhatsappUrl(raw: unknown): Promise<CreateC
   const parsed = inputSchema.safeParse(raw);
 
   if (!parsed.success) {
-    return { ok: false, error: "Pedido inválido. Recarrega a página e tenta de novo." };
+    return { ok: false, error: "Pedido inválido. Recarregue a página e tente de novo." };
   }
 
   const input = parsed.data;
@@ -90,7 +90,7 @@ export async function createCartAndGetWhatsappUrl(raw: unknown): Promise<CreateC
       ? (product.variants.find((v) => v.id === item.variantId) ?? null)
       : null;
 
-    // Variante que já não existe: cai para o produto base em vez de rebentar.
+    // Variante que não existe mais: cai para o produto base em vez de quebrar.
     const unitPriceCents =
       product.priceType === "on_request" || product.priceCents === null
         ? null
@@ -140,7 +140,7 @@ export async function createCartAndGetWhatsappUrl(raw: unknown): Promise<CreateC
     .returning({ id: carts.id });
 
   if (!cart) {
-    return { ok: false, error: "Não foi possível registar o pedido. Tenta de novo." };
+    return { ok: false, error: "Não foi possível registrar o pedido. Tente de novo." };
   }
 
   try {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Paginacao, RequestFilters } from "@/components/dashboard/request-filters";
+import { FiltrosSkeleton } from "@/components/dashboard/skeletons";
 import { EmptyState } from "@/components/public/empty-state";
 import { CopperRule } from "@/components/public/typography";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ export default async function OrcamentosPage({
   searchParams: Promise<{ q?: string; status?: string; pagina?: string }>;
 }) {
   const params = await searchParams;
-  const status = (["novo", "contactado", "fechado", "perdido"] as const).find(
+  const status = (["novo", "contatado", "fechado", "perdido"] as const).find(
     (s) => s === params.status,
   );
 
@@ -33,15 +34,15 @@ export default async function OrcamentosPage({
         <CopperRule />
         <h1 className="font-display text-h2 font-bold text-display">Orçamentos.</h1>
         <p className="max-w-[68ch] text-small text-subtle">
-          Pedidos de peça personalizada, com os ficheiros que vieram do formulário.
+          Pedidos de peça personalizada, com os arquivos que vieram do formulário.
         </p>
       </div>
 
-      <Suspense fallback={<p className="text-small text-subtle">A carregar…</p>}>
+      <Suspense fallback={<FiltrosSkeleton />}>
         <RequestFilters
           base="/dashboard/orcamentos"
           filtros={{ q: params.q ?? "", status: status ?? "" }}
-          placeholder="Código, nome ou contacto"
+          placeholder="Código, nome ou contato"
         />
       </Suspense>
 
@@ -56,7 +57,7 @@ export default async function OrcamentosPage({
             <table className="w-full min-w-[720px] border-collapse">
               <thead>
                 <tr className="border-b border-border text-left">
-                  {["Código", "Data", "Nome", "Contacto", "Ficheiros", "Estado"].map((t) => (
+                  {["Código", "Data", "Nome", "Contato", "Arquivos", "Estado"].map((t) => (
                     <th
                       key={t}
                       className="p-3 font-accent text-eyebrow tracking-caps text-subtle uppercase"

@@ -30,11 +30,11 @@ const QUOTES_PREFIX = "quotes/";
 /**
  * Dois buckets, e a chave decide qual.
  *
- * As imagens de produto têm de ser legíveis por qualquer pessoa — estão num
- * site público. Os ficheiros dos clientes não podem ser, e num bucket com
- * acesso público activado seriam, porque o acesso público é do bucket inteiro.
+ * As imagens de produto precisam ser legíveis por qualquer pessoa — estão num
+ * site público. Os arquivos dos clientes não podem ser, e num bucket com
+ * acesso público ativado seriam, porque o acesso público é do bucket inteiro.
  * Daí `quotes/` viver num bucket separado, sem acesso público, onde a única
- * porta é um URL assinado.
+ * porta é uma URL assinada.
  */
 export function bucketForKey(key: string): string {
   return key.startsWith(QUOTES_PREFIX) ? env.R2_PRIVATE_BUCKET : env.R2_BUCKET;
@@ -44,7 +44,7 @@ export function isPrivateKey(key: string): boolean {
   return key.startsWith(QUOTES_PREFIX);
 }
 
-/** `quotes/{quote_code}/{uuid}.{ext}` — CLAUDE.md, secção 6. */
+/** `quotes/{quote_code}/{uuid}.{ext}` — CLAUDE.md, seção 6. */
 export function quoteFileKey(code: string, extension: string): string {
   return `${QUOTES_PREFIX}${code}/${crypto.randomUUID()}.${extension}`;
 }
@@ -84,7 +84,7 @@ export async function objectSize(key: string): Promise<number | null> {
   }
 }
 
-/** Lê só os primeiros bytes, para inspeccionar a assinatura do ficheiro. */
+/** Lê só os primeiros bytes, para inspecionar a assinatura do arquivo. */
 export async function readHead(key: string, bytes = 16): Promise<Uint8Array | null> {
   try {
     const result = await r2.send(

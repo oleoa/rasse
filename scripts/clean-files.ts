@@ -4,13 +4,13 @@ import { DeleteObjectsCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/c
 /**
  * Duas limpezas, ambas exigidas pela Fase 5 e pela Fase 10:
  *
- *  1. Ficheiros órfãos — subiram para o bucket mas o formulário nunca foi
+ *  1. Arquivos órfãos — subiram para o bucket mas o formulário nunca foi
  *     submetido, por isso não existe `quote_requests` com aquele código.
- *     Só apaga acima de 24h, para não apanhar um upload em curso.
+ *     Só apaga acima de 24h, para não pegar um upload em curso.
  *  2. Retenção de 12 meses — pedidos mais antigos do que isso perdem os
- *     ficheiros. A linha do pedido fica, para histórico.
+ *     arquivos. A linha do pedido fica, para histórico.
  *
- * Corre com: pnpm files:clean          (mostra o que faria)
+ * Rode com: pnpm files:clean          (mostra o que faria)
  *            pnpm files:clean --apply  (apaga mesmo)
  */
 
@@ -19,11 +19,14 @@ const APPLY = process.argv.includes("--apply");
 const ORPHAN_AFTER_HOURS = Number(process.env.ORPHAN_AFTER_HOURS ?? 24);
 const RETENTION_MONTHS = Number(process.env.RETENTION_MONTHS ?? 12);
 
-const { DATABASE_URL, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } =
+const { DATABASE_URL, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_PRIVATE_BUCKET } =
   process.env as Record<string, string>;
 
+// Os arquivos dos clientes vivem no bucket privado; é esse que se limpa.
+const R2_BUCKET = R2_PRIVATE_BUCKET;
+
 if (!DATABASE_URL || !R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET) {
-  throw new Error("Faltam variáveis de ambiente. Corre com --env-file=.env.local.");
+  throw new Error("Faltam variáveis de ambiente. Rode com --env-file=.env.local.");
 }
 
 const sql = neon(DATABASE_URL);
@@ -88,7 +91,7 @@ for (const object of objects) {
   if (antigos.has(code)) expirados.push(object.key);
 }
 
-console.log(`Objectos em quotes/: ${objects.length}`);
+console.log(`Objetos em quotes/: ${objects.length}`);
 console.log(`  órfãos com mais de ${ORPHAN_AFTER_HOURS}h: ${orfaos.length}`);
 console.log(`  fora da retenção de ${RETENTION_MONTHS} meses: ${expirados.length}`);
 
@@ -105,4 +108,4 @@ const purgados = APPLY
   : await sql`select key from rate_limits where window_start < now() - interval '24 hours'`;
 console.log(`  contadores de rate limit expirados: ${purgados.length}`);
 
-console.log(APPLY ? "Apagado." : "Simulação. Corre com --apply para apagar.");
+console.log(APPLY ? "Apagado." : "Simulação. Rode com --apply para apagar.");

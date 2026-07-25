@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-// Adaptado ao DESIGN.md (secção 5): fundo char-700, borda subtil, cantos de 3px,
+// Adaptado ao DESIGN.md (seção 5): fundo char-700, borda sutil, cantos de 3px,
 // padding 10px 14px, corpo a 15px, foco com borda de cobre e --focus-ring.
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (

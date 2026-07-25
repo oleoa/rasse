@@ -107,13 +107,13 @@ export function useTurnstile(siteKey: string) {
   const getFreshToken = useCallback(async (): Promise<string> => {
     const id = widgetId.current;
     if (!id || !window.turnstile) {
-      throw new Error("A verificação anti-spam ainda não carregou. Espera um instante.");
+      throw new Error("A verificação anti-spam ainda não carregou. Espere um instante.");
     }
 
     return new Promise<string>((resolve, reject) => {
       const timer = window.setTimeout(() => {
         pending.current = null;
-        reject(new Error("A verificação anti-spam demorou demasiado. Tenta de novo."));
+        reject(new Error("A verificação anti-spam demorou demais. Tente de novo."));
       }, TOKEN_TIMEOUT_MS);
 
       pending.current = {

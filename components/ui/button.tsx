@@ -1,15 +1,16 @@
 "use client";
 
 // Cliente porque @radix-ui/react-slot chama createContext sem trazer a própria
-// directiva, e rebenta ao ser avaliado no ambiente react-server.
+// diretiva, e quebra ao ser avaliado no ambiente react-server.
 
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { LoaderCircle } from "lucide-react";
 import { Slot } from "radix-ui/slot";
 
 import { cn } from "@/lib/utils";
 
-// Adaptado ao DESIGN.md (secção 5): font-accent em caixa alta com tracking-caps,
+// Adaptado ao DESIGN.md (seção 5): font-accent em caixa alta com tracking-caps,
 // cantos de 3px, transições de 120ms, hover em cobre mais claro e press em cobre
 // mais escuro. Os nomes das variantes são os do shadcn, para não partir os
 // componentes que dependem deles.
@@ -49,12 +50,21 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  carregando = false,
+  disabled,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    /** Mostra o giro e bloqueia o botão enquanto a ação corre. */
+    carregando?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
+  // O Slot do Radix exige filho único, então com asChild o giro não pode ser injetado.
+  const mostrarGiro = carregando && !asChild;
+  // Em botão só de ícone não cabem os dois: o giro substitui o ícone original.
+  const soGiro = mostrarGiro && typeof size === "string" && size.startsWith("icon");
 
   return (
     <Comp
@@ -62,8 +72,23 @@ function Button({
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={asChild ? disabled : disabled || carregando}
+      aria-busy={carregando || undefined}
       {...props}
-    />
+    >
+      {/* Com asChild o filho vai inteiro e sozinho: o Slot recusa um fragmento
+          ou uma lista, mesmo que os outros elementos sejam nulos. */}
+      {asChild ? (
+        children
+      ) : (
+        <>
+          {mostrarGiro ? (
+            <LoaderCircle aria-hidden="true" strokeWidth={1.5} className="animate-girar" />
+          ) : null}
+          {soGiro ? null : children}
+        </>
+      )}
+    </Comp>
   );
 }
 

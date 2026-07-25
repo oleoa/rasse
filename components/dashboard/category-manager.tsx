@@ -16,12 +16,18 @@ export function CategoryManager({ categorias }: { categorias: CategoryWithCount[
   const [novoSlug, setNovoSlug] = useState("");
   const [slugTocado, setSlugTocado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  // Qual botão disparou a ação: o useTransition é partilhado, mas o giro tem de
+  // aparecer só onde o usuário clicou.
+  const [emAcao, setEmAcao] = useState<string | null>(null);
   const [pendente, iniciar] = useTransition();
   const router = useRouter();
+
+  const ocupado = (chave: string) => pendente && emAcao === chave;
 
   function criar(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErro(null);
+    setEmAcao("nova");
 
     iniciar(async () => {
       const r = await saveCategory({
@@ -39,8 +45,9 @@ export function CategoryManager({ categorias }: { categorias: CategoryWithCount[
     });
   }
 
-  function guardar(categoria: CategoryWithCount) {
+  function salvar(categoria: CategoryWithCount) {
     setErro(null);
+    setEmAcao(categoria.id);
     iniciar(async () => {
       const r = await saveCategory({
         id: categoria.id,
@@ -87,6 +94,11 @@ export function CategoryManager({ categorias }: { categorias: CategoryWithCount[
           {erro}
         </p>
       ) : null}
+
+      {/* Cobre também as setas e o apagar, que são só ícone e não mudam de rótulo. */}
+      <span aria-live="polite" className="sr-only">
+        {pendente ? "Salvando as categorias." : ""}
+      </span>
 
       <ul className="flex flex-col gap-3">
         {lista.map((categoria, index) => (
@@ -142,9 +154,10 @@ export function CategoryManager({ categorias }: { categorias: CategoryWithCount[
                 type="button"
                 size="sm"
                 disabled={pendente}
-                onClick={() => guardar(categoria)}
+                carregando={ocupado(categoria.id)}
+                onClick={() => salvar(categoria)}
               >
-                Guardar
+                {ocupado(categoria.id) ? "Salvando…" : "Salvar"}
               </Button>
               <button
                 type="button"
@@ -171,7 +184,7 @@ export function CategoryManager({ categorias }: { categorias: CategoryWithCount[
                 aria-label={`Apagar ${categoria.name}`}
                 title={
                   categoria.produtos > 0
-                    ? "Tem produtos associados; move-os primeiro."
+                    ? "Tem produtos associados; mova-os primeiro."
                     : "Apagar categoria"
                 }
                 className="p-1 text-subtle hover:text-danger disabled:opacity-30"
@@ -214,9 +227,9 @@ export function CategoryManager({ categorias }: { categorias: CategoryWithCount[
             onBlur={(e) => setNovoSlug(slugify(e.target.value))}
           />
         </div>
-        <Button type="submit" size="sm" disabled={pendente}>
-          <Plus aria-hidden="true" strokeWidth={1.5} />
-          Criar
+        <Button type="submit" size="sm" disabled={pendente} carregando={ocupado("nova")}>
+          {ocupado("nova") ? null : <Plus aria-hidden="true" strokeWidth={1.5} />}
+          {ocupado("nova") ? "Criando…" : "Criar"}
         </Button>
       </form>
     </div>

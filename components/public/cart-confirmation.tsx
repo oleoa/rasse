@@ -13,7 +13,7 @@ export type SentCart = {
 };
 
 /**
- * Vive fora da cesta: o envio limpa as linhas, e o código tem de continuar
+ * Vive fora da cesta: o envio limpa as linhas, e o código precisa continuar
  * visível depois disso.
  */
 export function CartConfirmation({ code, whatsappUrl, removedNames }: SentCart) {
@@ -32,9 +32,9 @@ export function CartConfirmation({ code, whatsappUrl, removedNames }: SentCart) 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-start gap-4 rounded-md border border-border p-8">
       <CopperRule />
-      <Eyebrow>Pedido registado</Eyebrow>
-      <h2 className="font-display text-h2 font-bold text-display">Guarda este código.</h2>
-      <p className="text-small text-subtle">É por ele que encontramos o teu pedido na conversa.</p>
+      <Eyebrow>Pedido registrado</Eyebrow>
+      <h2 className="font-display text-h2 font-bold text-display">Guarde este código.</h2>
+      <p className="text-small text-subtle">É por ele que encontramos o seu pedido na conversa.</p>
 
       <div className="flex flex-wrap items-center gap-3">
         <code className="rounded-sm border border-border bg-char-700 px-4 py-2 font-mono text-base text-display">
@@ -55,12 +55,12 @@ export function CartConfirmation({ code, whatsappUrl, removedNames }: SentCart) 
 
       {removedNames.length > 0 ? (
         <p className="text-small text-danger">
-          Ficaram de fora, por já não estarem disponíveis: {removedNames.join(", ")}.
+          Ficaram de fora, por não estarem mais disponíveis: {removedNames.join(", ")}.
         </p>
       ) : null}
 
       <p className="text-small text-subtle">
-        A conversa do WhatsApp deve ter aberto noutro separador. Se não abriu, usa o botão.
+        A conversa do WhatsApp deve ter aberto em outra aba. Se não abriu, use o botão.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">

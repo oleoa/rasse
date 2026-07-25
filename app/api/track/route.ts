@@ -25,7 +25,7 @@ const BOT =
 /**
  * Ingestão de eventos, sem cookies. O `sessionId` é um uuid do `sessionStorage`.
  *
- * `cart_sent` e `quote_submitted` não entram por aqui: são gravados pelas
+ * `cart_sent` e `quote_submitted` não entram por aqui: são salvos pelas
  * Server Actions que os originam, onde não há como falsificá-los.
  */
 export async function POST(request: Request) {

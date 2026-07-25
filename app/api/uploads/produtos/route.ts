@@ -34,7 +34,7 @@ const bodySchema = z.object({
 /**
  * Assinaturas para imagens de produto. A porta aqui é a sessão do painel, não o
  * Turnstile: quem chega a este endpoint já é administrador.
- * Chaves em `products/{product_id}/{uuid}.{ext}` — CLAUDE.md, secção 7.
+ * Chaves em `products/{product_id}/{uuid}.{ext}` — CLAUDE.md, seção 7.
  */
 export async function POST(request: Request) {
   const session = await auth();

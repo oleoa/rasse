@@ -17,7 +17,7 @@ export function CartPageClient() {
   const [sent, setSent] = useState<SentCart | null>(null);
   const clear = useCartStore((s) => s.clear);
 
-  // Tem de vir antes de tudo: o envio limpa a cesta, e o código não pode
+  // Precisa vir antes de tudo: o envio limpa a cesta, e o código não pode
   // desaparecer com ela.
   if (sent) return <CartConfirmation {...sent} />;
 
@@ -37,7 +37,7 @@ export function CartPageClient() {
     return (
       <EmptyState
         title="A cesta está vazia."
-        description="Percorre o catálogo e adiciona as peças que te interessam."
+        description="Percorra o catálogo e adicione as peças que quiser."
         action={
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button asChild>

@@ -24,7 +24,7 @@ export function formatBRL(cents: number): string {
   return BRL.format(cents / 100);
 }
 
-/** Data em UTC na base de dados, apresentada em America/Sao_Paulo. */
+/** Data em UTC no banco de dados, apresentada em America/Sao_Paulo. */
 export function formatDate(date: Date): string {
   return DATE_SP.format(date);
 }

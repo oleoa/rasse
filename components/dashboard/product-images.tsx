@@ -56,8 +56,8 @@ export function ProductImages({
 
   async function adicionar(lista: FileList | null) {
     if (!lista) return;
-    const ficheiros = Array.from(lista).slice(0, MAX_IMAGENS - images.length);
-    if (ficheiros.length === 0) return;
+    const arquivos = Array.from(lista).slice(0, MAX_IMAGENS - images.length);
+    if (arquivos.length === 0) return;
 
     setErro(null);
     setAEnviar(true);
@@ -68,7 +68,7 @@ export function ProductImages({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           productId,
-          files: ficheiros.map((f) => ({ filename: f.name, mime: f.type, sizeBytes: f.size })),
+          files: arquivos.map((f) => ({ filename: f.name, mime: f.type, sizeBytes: f.size })),
         }),
       });
 
@@ -84,7 +84,7 @@ export function ProductImages({
 
       const novas: ImageDraft[] = [];
 
-      for (const [index, file] of ficheiros.entries()) {
+      for (const [index, file] of arquivos.entries()) {
         const alvo = payload.uploads[index];
         if (!alvo) continue;
 
@@ -143,10 +143,11 @@ export function ProductImages({
           type="button"
           variant="outline"
           size="sm"
+          carregando={aEnviar}
           disabled={aEnviar || images.length >= MAX_IMAGENS}
           onClick={() => inputRef.current?.click()}
         >
-          {aEnviar ? "A enviar…" : "Adicionar imagens"}
+          {aEnviar ? "Enviando…" : "Adicionar imagens"}
         </Button>
         <span className="text-small text-subtle">
           {images.length}/{MAX_IMAGENS} · a primeira é a capa
@@ -233,7 +234,7 @@ export function ProductImages({
                     value={imagem.alt}
                     maxLength={160}
                     aria-invalid={imagem.alt.trim().length === 0}
-                    placeholder="Descreve a imagem para quem não a vê"
+                    placeholder="Descreva a imagem para quem não a vê"
                     onChange={(event) =>
                       onChange(
                         images.map((img, i) =>

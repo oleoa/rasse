@@ -18,7 +18,7 @@ export const priceTypeEnum = pgEnum("price_type", ["fixed", "on_request"]);
 export const productStatusEnum = pgEnum("product_status", ["draft", "published", "archived"]);
 export const requestStatusEnum = pgEnum("request_status", [
   "novo",
-  "contactado",
+  "contatado",
   "fechado",
   "perdido",
 ]);
@@ -260,9 +260,9 @@ export const eventDaily = pgTable(
 /**
  * Contador de rate limit por chave (`presign:{ip}`, `orcamento:{ip}`).
  *
- * Não está na secção 5 do CLAUDE.md — ver BLOCKERS.md. A Fase 5 exige rate
+ * Não está na seção 5 do CLAUDE.md — ver BLOCKERS.md. A Fase 5 exige rate
  * limit por IP e, em serverless, um contador em memória não sobrevive entre
- * invocações nem é partilhado entre instâncias.
+ * invocações nem é compartilhado entre instâncias.
  */
 export const rateLimits = pgTable("rate_limits", {
   key: text().primaryKey(),

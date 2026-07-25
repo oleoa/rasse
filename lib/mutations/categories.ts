@@ -24,7 +24,7 @@ function revalidar() {
 const saveSchema = z.object({ id: z.uuid().nullable(), category: categorySchema });
 
 export async function saveCategory(raw: unknown): Promise<ActionResult<{ id: string }>> {
-  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const parsed = saveSchema.safeParse(raw);
   if (!parsed.success) {
@@ -70,7 +70,7 @@ export async function saveCategory(raw: unknown): Promise<ActionResult<{ id: str
 
 /** Uma categoria com produtos não pode ser apagada — a FK também o impede. */
 export async function deleteCategory(raw: unknown): Promise<ActionResult> {
-  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const id = z.uuid().safeParse(raw);
   if (!id.success) return { ok: false, error: "Pedido inválido." };
@@ -83,7 +83,7 @@ export async function deleteCategory(raw: unknown): Promise<ActionResult> {
   if (Number(value) > 0) {
     return {
       ok: false,
-      error: `Esta categoria tem ${value} produto${Number(value) === 1 ? "" : "s"}. Move-os primeiro.`,
+      error: `Esta categoria tem ${value} produto${Number(value) === 1 ? "" : "s"}. Mova-os primeiro.`,
     };
   }
 
@@ -95,7 +95,7 @@ export async function deleteCategory(raw: unknown): Promise<ActionResult> {
 const reorderSchema = z.array(z.uuid()).min(1).max(200);
 
 export async function reorderCategories(raw: unknown): Promise<ActionResult> {
-  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const parsed = reorderSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "Pedido inválido." };

@@ -10,7 +10,7 @@ import type { ActionResult } from "@/lib/mutations/products";
 
 export async function saveSettings(raw: unknown): Promise<ActionResult> {
   const session = await auth();
-  if (!session?.user) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!session?.user) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const parsed = settingsSchema.safeParse(raw);
   if (!parsed.success) {

@@ -25,9 +25,9 @@ import {
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
-  name: z.string().trim().min(2, "Diz-nos o teu nome.").max(80),
-  contact: z.string().trim().min(5, "Deixa um WhatsApp ou email.").max(120),
-  message: z.string().trim().min(10, "Descreve a peça que tens em mente.").max(4000),
+  name: z.string().trim().min(2, "Diga o seu nome.").max(80),
+  contact: z.string().trim().min(5, "Deixe um WhatsApp ou e-mail.").max(120),
+  message: z.string().trim().min(10, "Descreva a peça que você tem em mente.").max(4000),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -36,7 +36,7 @@ type Attachment = {
   id: string;
   file: File;
   progress: number;
-  state: "pendente" | "a enviar" | "enviado" | "erro" | "cancelado";
+  state: "pendente" | "enviando" | "enviado" | "erro" | "cancelado";
   error?: string;
   controller?: AbortController;
 };
@@ -62,7 +62,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
     if (!incoming) return;
     setServerError(null);
 
-    // Snapshot já: o updater do React corre depois de limparmos o value do
+    // Snapshot já: o updater do React roda depois de limparmos o value do
     // input, e nessa altura o FileList original já está vazio.
     const escolhidos = Array.from(incoming);
 
@@ -117,7 +117,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
 
     const invalid = attachments.find((a) => a.state === "erro");
     if (invalid) {
-      setServerError(invalid.error ?? "Há um ficheiro inválido na lista.");
+      setServerError(invalid.error ?? "Há um arquivo inválido na lista.");
       return;
     }
 
@@ -151,7 +151,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
         };
 
         if (!response.ok || !payload.code || !payload.uploads) {
-          setServerError(payload.error ?? "Não foi possível preparar o envio dos ficheiros.");
+          setServerError(payload.error ?? "Não foi possível preparar o envio dos arquivos.");
           return;
         }
 
@@ -162,7 +162,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
           if (!target) continue;
 
           const controller = new AbortController();
-          patch(attachment.id, { state: "a enviar", progress: 0, controller });
+          patch(attachment.id, { state: "enviando", progress: 0, controller });
 
           try {
             await uploadToR2({
@@ -189,7 +189,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
               state: "erro",
               error: error instanceof Error ? error.message : "O upload falhou.",
             });
-            setServerError("Um dos ficheiros não subiu. Remove-o ou tenta de novo.");
+            setServerError("Um dos arquivos não subiu. Remova-o ou tente de novo.");
             return;
           }
         }
@@ -213,7 +213,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
       setSent({ code: result.code, whatsappUrl: result.whatsappUrl });
     } catch (error) {
       setServerError(
-        error instanceof Error ? error.message : "Não foi possível enviar. Tenta de novo.",
+        error instanceof Error ? error.message : "Não foi possível enviar. Tente de novo.",
       );
     }
   }
@@ -223,12 +223,12 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
       <div className="mx-auto flex max-w-xl flex-col items-start gap-4 rounded-md border border-border p-8">
         <CopperRule />
         <Eyebrow>Pedido recebido</Eyebrow>
-        <h2 className="font-display text-h2 font-bold text-display">Guarda este código.</h2>
+        <h2 className="font-display text-h2 font-bold text-display">Guarde este código.</h2>
         <code className="rounded-sm border border-border bg-char-700 px-4 py-2 font-mono text-base text-display">
           {sent.code}
         </code>
         <p className="text-small text-subtle">
-          Vamos ver o teu pedido e responder pelo contacto que deixaste. Prazos e valores são
+          Vamos ver o seu pedido e responder pelo contato que você deixou. Prazos e valores são
           combinados na conversa.
         </p>
         {sent.whatsappUrl ? (
@@ -262,10 +262,10 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor={`${fieldId}-contacto`}>Contato</Label>
+        <Label htmlFor={`${fieldId}-contato`}>Contato</Label>
         <Input
-          id={`${fieldId}-contacto`}
-          placeholder="WhatsApp ou email"
+          id={`${fieldId}-contato`}
+          placeholder="WhatsApp ou e-mail"
           aria-invalid={!!errors.contact}
           {...register("contact")}
         />
@@ -281,7 +281,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
         <Textarea
           id={`${fieldId}-mensagem`}
           rows={6}
-          placeholder="Descreve o que tens em mente."
+          placeholder="Descreva o que você tem em mente."
           aria-invalid={!!errors.message}
           {...register("message")}
         />
@@ -293,7 +293,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Label htmlFor={`${fieldId}-ficheiros`}>Ficheiros (opcional)</Label>
+        <Label htmlFor={`${fieldId}-arquivos`}>Arquivos (opcional)</Label>
 
         <div
           onDragOver={(event) => {
@@ -312,10 +312,10 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
           )}
         >
           <Upload aria-hidden="true" strokeWidth={1.5} className="size-6 text-subtle" />
-          <p className="text-small text-subtle">Arrasta os ficheiros para aqui, ou escolhe-os.</p>
+          <p className="text-small text-subtle">Arraste os arquivos para cá, ou escolha-os.</p>
           <input
             ref={inputRef}
-            id={`${fieldId}-ficheiros`}
+            id={`${fieldId}-arquivos`}
             type="file"
             multiple
             accept={ACCEPT_ATTRIBUTE}
@@ -332,10 +332,10 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
             disabled={cheio}
             onClick={() => inputRef.current?.click()}
           >
-            Escolher ficheiros
+            Escolher arquivos
           </Button>
           <p className="text-small text-subtle">
-            Até {MAX_FILES} ficheiros, {MAX_FILE_BYTES / 1024 / 1024} MB cada.{" "}
+            Até {MAX_FILES} arquivos, {MAX_FILE_BYTES / 1024 / 1024} MB cada.{" "}
             {ALLOWED_EXTENSIONS.join(", ")}.
           </p>
         </div>
@@ -356,7 +356,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
                   </div>
 
                   <div className="flex shrink-0 items-center gap-1">
-                    {attachment.state === "a enviar" ? (
+                    {attachment.state === "enviando" ? (
                       <Button
                         type="button"
                         variant="ghost"
@@ -377,7 +377,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
                   </div>
                 </div>
 
-                {attachment.state === "a enviar" || attachment.state === "enviado" ? (
+                {attachment.state === "enviando" || attachment.state === "enviado" ? (
                   <div
                     role="progressbar"
                     aria-valuenow={attachment.progress}
@@ -402,7 +402,7 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
         <TurnstileBox containerRef={containerRef} />
         {failed ? (
           <p role="alert" className="text-small text-danger">
-            A verificação anti-spam não carregou. Recarrega a página.
+            A verificação anti-spam não carregou. Recarregue a página.
           </p>
         ) : null}
       </div>
@@ -413,12 +413,12 @@ export function QuoteForm({ siteKey }: { siteKey: string }) {
         </p>
       ) : null}
 
-      <Button type="submit" size="lg" disabled={isSubmitting || !ready}>
-        {isSubmitting ? "A enviar…" : "Enviar pedido"}
+      <Button type="submit" size="lg" carregando={isSubmitting} disabled={isSubmitting || !ready}>
+        {isSubmitting ? "Enviando…" : "Enviar pedido"}
       </Button>
 
       <p className="text-small text-subtle">
-        Não perguntamos quantidade, material nem prazo — isso combina-se na conversa.
+        Não perguntamos quantidade, material nem prazo — isso é combinado na conversa.
       </p>
     </form>
   );

@@ -15,6 +15,13 @@
       "when": 1784971100885,
       "tag": "0001_familiar_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785057500885,
+      "tag": "0002_ptbr_request_status",
+      "breakpoints": true
     }
   ]
 }

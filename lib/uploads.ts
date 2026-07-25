@@ -1,15 +1,15 @@
 /**
- * Whitelist de ficheiros do pedido personalizado — CLAUDE.md, secção 6.
- * Partilhada entre cliente e servidor; o servidor é que decide.
+ * Whitelist de arquivos do pedido personalizado — CLAUDE.md, seção 6.
+ * Compartilhada entre cliente e servidor; o servidor é que decide.
  */
 
 export const MAX_FILE_BYTES = 50 * 1024 * 1024;
 export const MAX_FILES = 5;
 
 /**
- * Os formatos de CAD não têm mime registado: o browser manda
+ * Os formatos de CAD não têm mime registrado: o navegador manda
  * `application/octet-stream` ou string vazia. Por isso a extensão manda, e o
- * mime só serve para apanhar incoerências óbvias.
+ * mime só serve para pegar incoerências óbvias.
  */
 const ALLOWED: Record<string, readonly string[]> = {
   stl: [
@@ -46,7 +46,7 @@ const ALLOWED: Record<string, readonly string[]> = {
 
 export const ALLOWED_EXTENSIONS = Object.keys(ALLOWED);
 
-/** Para o atributo `accept` do input de ficheiros. */
+/** Para o atributo `accept` do input de arquivos. */
 export const ACCEPT_ATTRIBUTE = ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(",");
 
 export function extensionOf(filename: string): string {
@@ -57,7 +57,7 @@ export function extensionOf(filename: string): string {
 
 export type FileRejection = { reason: string };
 
-/** Validação por metadados. Corre no cliente e outra vez no servidor. */
+/** Validação por metadados. Roda no cliente e outra vez no servidor. */
 export function validateFileMeta(input: {
   filename: string;
   mime: string;
@@ -65,7 +65,7 @@ export function validateFileMeta(input: {
 }): FileRejection | null {
   const ext = extensionOf(input.filename);
 
-  if (!ext) return { reason: "O ficheiro não tem extensão." };
+  if (!ext) return { reason: "O arquivo não tem extensão." };
 
   const mimes = ALLOWED[ext];
   if (!mimes) {
@@ -74,22 +74,22 @@ export function validateFileMeta(input: {
 
   const mime = input.mime.toLowerCase().split(";")[0]?.trim() ?? "";
   if (!mimes.includes(mime)) {
-    return { reason: `O tipo do ficheiro (${mime || "desconhecido"}) não bate certo com .${ext}.` };
+    return { reason: `O tipo do arquivo (${mime || "desconhecido"}) não bate certo com .${ext}.` };
   }
 
   if (!Number.isInteger(input.sizeBytes) || input.sizeBytes <= 0) {
-    return { reason: "Tamanho de ficheiro inválido." };
+    return { reason: "Tamanho de arquivo inválido." };
   }
 
   if (input.sizeBytes > MAX_FILE_BYTES) {
-    return { reason: `Máximo ${MAX_FILE_BYTES / 1024 / 1024} MB por ficheiro.` };
+    return { reason: `Máximo ${MAX_FILE_BYTES / 1024 / 1024} MB por arquivo.` };
   }
 
   return null;
 }
 
 /**
- * Assinaturas de executáveis. O browser deduz o mime da extensão, por isso um
+ * Assinaturas de executáveis. O navegador deduz o mime da extensão, por isso um
  * `.exe` renomeado para `.stl` passa a validação de metadados — só o conteúdo o
  * denuncia. Verificado no servidor, depois do upload, lendo os primeiros bytes.
  */
@@ -124,7 +124,7 @@ function startsWith(head: Uint8Array, signature: readonly number[]): boolean {
 }
 
 /**
- * Verifica os primeiros bytes já no bucket. Devolve o motivo da recusa, ou null.
+ * Verifica os primeiros bytes já no bucket. Retorna o motivo da recusa, ou null.
  */
 export function inspectFileHead(filename: string, head: Uint8Array): FileRejection | null {
   for (const { bytes, label } of EXECUTABLE_SIGNATURES) {
@@ -137,7 +137,7 @@ export function inspectFileHead(filename: string, head: Uint8Array): FileRejecti
   const required = REQUIRED_SIGNATURES[ext];
 
   if (required && !required.some((signature) => startsWith(head, signature))) {
-    return { reason: `O conteúdo de "${filename}" não corresponde a um ficheiro .${ext}.` };
+    return { reason: `O conteúdo de "${filename}" não corresponde a um arquivo .${ext}.` };
   }
 
   return null;

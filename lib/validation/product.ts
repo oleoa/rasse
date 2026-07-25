@@ -2,8 +2,8 @@ import { z } from "zod";
 import { SLUG_PATTERN } from "@/lib/slug";
 
 /**
- * Schemas partilhados entre o formulário do painel e as Server Actions — o
- * cliente e o servidor validam com exactamente as mesmas regras.
+ * Schemas compartilhados entre o formulário do painel e as Server Actions — o
+ * cliente e o servidor validam com exatamente as mesmas regras.
  */
 
 const slug = z
@@ -11,7 +11,7 @@ const slug = z
   .trim()
   .min(1, "O endereço é obrigatório.")
   .max(80, "Máximo 80 caracteres.")
-  .regex(SLUG_PATTERN, "Só letras minúsculas, números e hífenes.");
+  .regex(SLUG_PATTERN, "Só letras minúsculas, números e hifens.");
 
 const opcional = (max: number) =>
   z.preprocess(
@@ -25,7 +25,7 @@ export const productSchema = z
     slug,
     shortDescription: z.string().trim().min(1, "A descrição curta é obrigatória.").max(200),
     descriptionMd: z.string().trim().min(1, "A descrição é obrigatória.").max(8000),
-    categoryId: z.uuid("Escolhe uma categoria.").nullable(),
+    categoryId: z.uuid("Escolha uma categoria.").nullable(),
     priceType: z.enum(["fixed", "on_request"]),
     priceCents: z.int().min(0, "O preço não pode ser negativo.").max(99_999_999).nullable(),
     status: z.enum(["draft", "published", "archived"]),
@@ -43,7 +43,7 @@ export const productSchema = z
     path: ["priceCents"],
   })
   .refine((v) => !v.allowsPersonalization || (v.personalizationLabel?.length ?? 0) > 0, {
-    message: "Dá um nome ao campo de personalização.",
+    message: "Dê um nome ao campo de personalização.",
     path: ["personalizationLabel"],
   });
 
@@ -81,7 +81,7 @@ export const settingsSchema = z.object({
   whatsappNumber: z
     .string()
     .trim()
-    .min(10, "O número tem de estar no formato internacional, só dígitos.")
+    .min(10, "O número precisa estar no formato internacional, só dígitos.")
     .max(20)
     .regex(/^\d+$/, "Só dígitos, sem espaços nem símbolos. Ex: 5511987654321."),
   heroTitle: z.string().trim().min(2, "O título do hero é obrigatório.").max(120),
@@ -89,18 +89,18 @@ export const settingsSchema = z.object({
   aboutMd: z.string().trim().min(1, "O texto sobre a oficina é obrigatório.").max(8000),
   instagramUrl: z.preprocess(
     (v) => (typeof v === "string" && v.trim() === "" ? null : v),
-    z.url("Tem de ser um URL completo, com https://.").nullable(),
+    z.url("Precisa ser uma URL completa, com https://.").nullable(),
   ),
   contactEmail: z.preprocess(
     (v) => (typeof v === "string" && v.trim() === "" ? null : v),
-    z.email("Email inválido.").nullable(),
+    z.email("E-mail inválido.").nullable(),
   ),
   cnpj: opcional(20),
 });
 
 export type SettingsInput = z.input<typeof settingsSchema>;
 
-/** Avisos de SEO — não impedem gravar, só chamam a atenção. */
+/** Avisos de SEO — não impedem salvar, só chamam a atenção. */
 export function seoWarnings(values: {
   seoTitle: string | null;
   seoDescription: string | null;

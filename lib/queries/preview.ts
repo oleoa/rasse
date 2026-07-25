@@ -7,7 +7,7 @@ import { isValidPreviewToken } from "@/lib/preview";
 
 /**
  * Um produto por slug **sem** filtrar pelo estado, desde que o token bata certo.
- * É o único caminho que devolve rascunhos ao público, e exige o HMAC gerado
+ * É o único caminho que retorna rascunhos ao público, e exige o HMAC gerado
  * pelo painel.
  */
 export async function getProductForPreview(slug: string, token: string | undefined) {

@@ -10,8 +10,8 @@ const LOGIN_LIMIT = 10;
 const LOGIN_WINDOW_SECONDS = 15 * 60;
 
 const schema = z.object({
-  email: z.string().trim().min(1, "Preenche o email.").max(200),
-  password: z.string().min(1, "Preenche a password.").max(200),
+  email: z.string().trim().min(1, "Preencha o e-mail.").max(200),
+  password: z.string().min(1, "Preencha a senha.").max(200),
 });
 
 /** Só destinos internos do painel — senão o `callbackUrl` era um redirect aberto. */
@@ -31,13 +31,13 @@ export async function authenticate(
   });
 
   if (!parsed.success) {
-    return parsed.error.issues[0]?.message ?? "Preenche os dois campos.";
+    return parsed.error.issues[0]?.message ?? "Preencha os dois campos.";
   }
 
   const ip = clientIp(await headers());
   const limite = await rateLimit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_SECONDS);
   if (!limite.allowed) {
-    return "Demasiadas tentativas. Espera uns minutos.";
+    return "Muitas tentativas. Espere uns minutos.";
   }
 
   try {
@@ -47,9 +47,9 @@ export async function authenticate(
       redirectTo: safeCallback(formData.get("callbackUrl")),
     });
   } catch (error) {
-    // A mesma mensagem para "não existe" e para "password errada".
-    if (error instanceof AuthError) return "Email ou password inválidos.";
-    // O redirect de sucesso também passa por aqui, como exceção. Não apanhar.
+    // A mesma mensagem para "não existe" e para "senha errada".
+    if (error instanceof AuthError) return "E-mail ou senha inválidos.";
+    // O redirect de sucesso também passa por aqui, como exceção. Não capturar.
     throw error;
   }
 

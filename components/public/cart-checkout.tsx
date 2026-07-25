@@ -11,7 +11,7 @@ import { createCartAndGetWhatsappUrl } from "@/lib/mutations/carts";
 import { getSessionId } from "@/lib/session";
 
 /**
- * O ecrã de confirmação é responsabilidade de quem chama: enviar limpa a cesta,
+ * A tela de confirmação é responsabilidade de quem chama: enviar limpa a cesta,
  * e este componente deixa de ser renderizado a seguir.
  */
 export function CartCheckout({
@@ -35,9 +35,9 @@ export function CartCheckout({
     setPending(true);
     setError(null);
 
-    // Aberta antes do await: depois da resposta, o browser trata o window.open
-    // como popup e bloqueia-o. Sem "noopener" nas features, porque com ele o
-    // window.open devolve null e não haveria handle para navegar; a referência
+    // Aberta antes do await: depois da resposta, o navegador trata o window.open
+    // como popup e o bloqueia. Sem "noopener" nas features, porque com ele o
+    // window.open retorna null e não haveria handle para navegar; a referência
     // é cortada com opener = null enquanto a aba ainda está em about:blank.
     const janela = window.open("", "_blank");
     if (janela) janela.opener = null;
@@ -71,7 +71,7 @@ export function CartCheckout({
       clear();
     } catch {
       janela?.close();
-      setError("Não foi possível enviar agora. Verifica a ligação e tenta de novo.");
+      setError("Não foi possível enviar agora. Verifique a conexão e tente de novo.");
     } finally {
       setPending(false);
     }
@@ -88,7 +88,7 @@ export function CartCheckout({
           onChange={(event) => setName(event.target.value)}
           maxLength={80}
           autoComplete="name"
-          placeholder="Como te chamas"
+          placeholder="Como você se chama"
         />
       </div>
 
@@ -98,13 +98,12 @@ export function CartCheckout({
         </p>
       ) : null}
 
-      <Button type="submit" size="lg" disabled={pending || lines.length === 0}>
-        {pending ? "A enviar…" : "Enviar pelo WhatsApp"}
+      <Button type="submit" size="lg" carregando={pending} disabled={pending || lines.length === 0}>
+        {pending ? "Enviando…" : "Enviar pelo WhatsApp"}
       </Button>
 
       <p className="text-small text-subtle">
-        O pedido é registado com um código e a conversa abre noutro separador. Não há pagamento
-        aqui.
+        O pedido é registrado com um código e a conversa abre em outra aba. Não há pagamento aqui.
       </p>
     </form>
   );

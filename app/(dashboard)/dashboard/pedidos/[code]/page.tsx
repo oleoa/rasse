@@ -78,7 +78,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ code: s
                     ) : null}
                     {item.productId === null ? (
                       <p className="text-small text-subtle">
-                        O produto foi apagado do catálogo; o registo do pedido mantém-se.
+                        O produto foi apagado do catálogo; o registro do pedido continua.
                       </p>
                     ) : null}
                   </div>

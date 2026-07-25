@@ -82,7 +82,7 @@ export function ProductForm({
   imagensIniciais: ImageDraft[];
   variantesIniciais: VariantDraft[];
   previewUrl: string | null;
-  /** Id gerado no servidor para agrupar as imagens de um produto ainda não gravado. */
+  /** Id gerado no servidor para agrupar as imagens de um produto ainda não salvo. */
   novoProductId: string;
 }) {
   const [valores, setValores] = useState<ProductDraft>(inicial);
@@ -91,14 +91,16 @@ export function ProductForm({
   const [slugTocado, setSlugTocado] = useState(inicial.id !== null);
   const [erros, setErros] = useState<Record<string, string>>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
-  const [guardado, setGuardado] = useState(false);
+  const [salvo, setSalvo] = useState(false);
   const [pendente, iniciar] = useTransition();
+  // Salvar e apagar partilham o mesmo useTransition; sem isto o giro apareceria nos dois.
+  const [aApagar, setAApagar] = useState(false);
   const router = useRouter();
   const id = useId();
 
   const alterar = (mudanca: Partial<ProductDraft>) => {
     setValores((v) => ({ ...v, ...mudanca }));
-    setGuardado(false);
+    setSalvo(false);
   };
 
   const precoCents =
@@ -115,6 +117,7 @@ export function ProductForm({
     event.preventDefault();
     setErros({});
     setErroGeral(null);
+    setAApagar(false);
 
     const semAlt = imagens.findIndex((i) => i.alt.trim().length === 0);
     if (semAlt >= 0) {
@@ -141,7 +144,7 @@ export function ProductForm({
       seoDescription: valores.seoDescription,
     };
 
-    // Mesmo schema que a Server Action vai correr — o erro aparece no campo.
+    // Mesmo schema que a Server Action vai rodar — o erro aparece no campo.
     const parsed = productSchema.safeParse(candidato);
     if (!parsed.success) {
       const mapa: Record<string, string> = {};
@@ -150,7 +153,7 @@ export function ProductForm({
         if (campo && !mapa[campo]) mapa[campo] = issue.message;
       }
       setErros(mapa);
-      setErroGeral("Corrige os campos assinalados.");
+      setErroGeral("Corrija os campos marcados.");
       return;
     }
 
@@ -174,7 +177,7 @@ export function ProductForm({
         return;
       }
 
-      setGuardado(true);
+      setSalvo(true);
 
       if (!valores.id) {
         router.replace(`/dashboard/produtos/${resultado.data.id}`);
@@ -185,6 +188,7 @@ export function ProductForm({
 
   function apagar() {
     if (!valores.id) return;
+    setAApagar(true);
     iniciar(async () => {
       const resultado = await deleteProduct(valores.id);
       if (!resultado.ok) {
@@ -419,7 +423,7 @@ export function ProductForm({
           basePriceCents={precoCents}
           onChange={(v) => {
             setVariantes(v);
-            setGuardado(false);
+            setSalvo(false);
           }}
         />
       </section>
@@ -435,7 +439,7 @@ export function ProductForm({
           images={imagens}
           onChange={(i) => {
             setImagens(i);
-            setGuardado(false);
+            setSalvo(false);
           }}
         />
       </section>
@@ -486,13 +490,13 @@ export function ProductForm({
       </section>
 
       <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-border bg-background py-4">
-        <Button type="submit" size="lg" disabled={pendente}>
-          {pendente ? "A guardar…" : "Guardar"}
+        <Button type="submit" size="lg" disabled={pendente} carregando={pendente && !aApagar}>
+          {pendente && !aApagar ? "Salvando…" : "Salvar"}
         </Button>
 
-        {guardado ? (
+        {salvo ? (
           <Badge variant="success" aria-live="polite">
-            Guardado
+            Salvo
           </Badge>
         ) : null}
 
@@ -518,9 +522,10 @@ export function ProductForm({
             variant="destructive"
             size="sm"
             disabled={pendente}
+            carregando={pendente && aApagar}
             onClick={apagar}
           >
-            Apagar rascunho
+            {pendente && aApagar ? "Apagando…" : "Apagar rascunho"}
           </Button>
         ) : null}
 

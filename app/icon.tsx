@@ -5,7 +5,7 @@ export const contentType = "image/png";
 
 /**
  * Favicon gerado a partir do lockup tipográfico, não de um logo — o DESIGN.md
- * proíbe redesenhar a marca, e os ficheiros originais ainda não existem.
+ * proíbe redesenhar a marca, e os arquivos originais ainda não existem.
  */
 export default function Icon() {
   return new ImageResponse(

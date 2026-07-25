@@ -1,5 +1,5 @@
 /**
- * Mensagem de WhatsApp — formato fixo do CLAUDE.md, secção 6. Sem emojis.
+ * Mensagem de WhatsApp — formato fixo do CLAUDE.md, seção 6. Sem emojis.
  *
  * Olá! Tenho interesse nestes produtos:
  *
@@ -47,7 +47,7 @@ export function buildWhatsappMessage(items: WhatsappItem[], code: string): strin
   return message;
 }
 
-/** O número tem de vir só com dígitos, no formato internacional. */
+/** O número precisa vir só com dígitos, no formato internacional. */
 export function whatsappUrl(phoneNumber: string, message: string): string {
   const digits = phoneNumber.replace(/\D/g, "");
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;

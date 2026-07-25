@@ -1,6 +1,6 @@
 # CLAUDE.md — Oficina Rassë
 
-Contexto permanente para o Claude Code. Lê este ficheiro antes de qualquer alteração.
+Contexto permanente para o Claude Code. Leia este arquivo antes de qualquer alteração.
 
 ---
 
@@ -15,55 +15,59 @@ O site tem duas partes:
   personalizado, e uma cesta que termina numa conversa de WhatsApp.
 - **Dashboard privado** — CRUD de produtos, gestão de pedidos e orçamentos, métricas.
 
-**Não há pagamento online, checkout, envio de email nem automações em v1.** Todo o fecho de
+**Não há pagamento online, checkout, envio de email nem automações em v1.** Todo o fechamento de
 negócio acontece no WhatsApp do dono. Se uma tarefa parecer exigir pagamento ou email, está fora
-de âmbito — regista em `BLOCKERS.md` e continua.
+do escopo — registre em `BLOCKERS.md` e continue.
 
-Idioma de todo o conteúdo visível: **português do Brasil**. Moeda: **BRL**, guardada em centavos.
+Idioma de **tudo**: português do Brasil. Não só o conteúdo visível — também comentários, mensagens
+de erro, nomes de variáveis em português, documentação e mensagens de commit. Nada de português
+europeu: é _arquivo_ e não _ficheiro_, _usuário_ e não _utilizador_, _tela_ e não _ecrã_, _banco de
+dados_ e não _base de dados_, _salvar_ e não _guardar_, _você_ e não _tu_ ("envie", nunca "envia").
+Moeda: **BRL**, armazenada em centavos.
 
 ---
 
 ## 2. Stack (versões fixas — não trocar)
 
-| Camada            | Escolha                                       |
-| ----------------- | --------------------------------------------- |
-| Framework         | Next.js 15, App Router, TypeScript `strict`   |
-| UI                | Tailwind CSS v4 + shadcn/ui                   |
-| Base de dados     | Neon (Postgres serverless)                    |
-| ORM / migrations  | Drizzle ORM + drizzle-kit                     |
-| Storage           | Cloudflare R2 (S3 API, presigned URLs)        |
-| Auth              | Auth.js (NextAuth v5), provider `credentials` |
-| Validação         | Zod (todos os inputs, sem excepção)           |
-| Formulários       | react-hook-form + `@hookform/resolvers/zod`   |
-| Gráficos          | Recharts                                      |
-| Anti-spam         | Cloudflare Turnstile                          |
-| Estado da cesta   | Zustand com `persist` em `localStorage`       |
-| Hosting           | Vercel                                        |
-| Gestor de pacotes | pnpm                                          |
+| Camada                 | Escolha                                       |
+| ---------------------- | --------------------------------------------- |
+| Framework              | Next.js 15, App Router, TypeScript `strict`   |
+| UI                     | Tailwind CSS v4 + shadcn/ui                   |
+| Banco de dados         | Neon (Postgres serverless)                    |
+| ORM / migrations       | Drizzle ORM + drizzle-kit                     |
+| Storage                | Cloudflare R2 (S3 API, presigned URLs)        |
+| Auth                   | Auth.js (NextAuth v5), provider `credentials` |
+| Validação              | Zod (todos os inputs, sem exceção)            |
+| Formulários            | react-hook-form + `@hookform/resolvers/zod`   |
+| Gráficos               | Recharts                                      |
+| Anti-spam              | Cloudflare Turnstile                          |
+| Estado da cesta        | Zustand com `persist` em `localStorage`       |
+| Hosting                | Vercel                                        |
+| Gerenciador de pacotes | pnpm                                          |
 
-**Não instalar dependências fora desta lista sem perguntar primeiro.** Se achares que falta
-alguma, escreve a justificação em `BLOCKERS.md` e usa a solução nativa entretanto.
+**Não instalar dependências fora desta lista sem perguntar primeiro.** Se achar que falta
+alguma, escreva a justificativa em `BLOCKERS.md` e use a solução nativa enquanto isso.
 
 ---
 
 ## 3. Convenções de código
 
-- **Server Components por defeito.** `"use client"` só quando há estado, evento ou API do browser.
-- **Mutações via Server Actions**, nunca route handlers, excepto: presigned URLs do R2, endpoint
+- **Server Components por padrão.** `"use client"` só quando há estado, evento ou API do navegador.
+- **Mutações via Server Actions**, nunca route handlers, exceto: presigned URLs do R2, endpoint
   de tracking, e o handler do Auth.js.
 - **Zod em toda a fronteira**: Server Actions, route handlers, variáveis de ambiente (`lib/env.ts`
-  valida no arranque e falha ruidosamente).
+  valida na inicialização e falha ruidosamente).
 - **`any` é proibido.** `unknown` + narrowing quando necessário.
-- Acesso à base de dados só através de `lib/queries/*` e `lib/mutations/*`. Componentes nunca
-  importam `db` directamente.
+- Acesso ao banco de dados só através de `lib/queries/*` e `lib/mutations/*`. Componentes nunca
+  importam `db` diretamente.
 - Dinheiro em **centavos, inteiro**. Nunca `float`. Formatação só na camada de apresentação, via
   `lib/format.ts` (`Intl.NumberFormat("pt-BR", { currency: "BRL" })`).
-- Datas em UTC na base de dados; apresentação em `America/Sao_Paulo`.
-- Nomes de ficheiros e pastas em `kebab-case`; componentes em `PascalCase`.
+- Datas em UTC no banco de dados; apresentação em `America/Sao_Paulo`.
+- Nomes de arquivos e pastas em `kebab-case`; componentes em `PascalCase`.
 - Rotas públicas em português: `/produtos`, `/produtos/[slug]`, `/quem-somos`, `/personalizado`,
   `/cesta`. Dashboard: `/dashboard/...`.
-- Sem comentários decorativos. Comenta apenas o que não é óbvio pelo código.
-- Cada ficheiro faz uma coisa. Se passar de ~200 linhas, provavelmente faz duas.
+- Sem comentários decorativos. Comente apenas o que não é óbvio pelo código.
+- Cada arquivo faz uma coisa. Se passar de ~200 linhas, provavelmente faz duas.
 
 ## 4. Estrutura de pastas
 
@@ -98,7 +102,7 @@ lib/
 
 ## 5. Schema (fonte de verdade — `db/schema.ts`)
 
-Ids: `uuid` gerado na base de dados. Todas as tabelas têm `created_at`; as mutáveis têm `updated_at`.
+Ids: `uuid` gerado no banco de dados. Todas as tabelas têm `created_at`; as mutáveis têm `updated_at`.
 
 ```
 settings            singleton (id=1)
@@ -135,7 +139,7 @@ carts                           -- criada SÓ no momento do envio para WhatsApp
   id, code (unique, curto), customer_name?,
   subtotal_cents,               -- soma apenas dos itens de preço fixo
   has_on_request_items (bool),
-  status: 'novo' | 'contactado' | 'fechado' | 'perdido',
+  status: 'novo' | 'contatado' | 'fechado' | 'perdido',
   internal_notes, created_at, updated_at
 
 cart_items
@@ -147,7 +151,7 @@ cart_items
 
 quote_requests                  -- pedido de impressão personalizada
   id, code (unique), name, contact, message,
-  status: 'novo' | 'contactado' | 'fechado' | 'perdido',
+  status: 'novo' | 'contatado' | 'fechado' | 'perdido',
   internal_notes, created_at, updated_at
 
 quote_files
@@ -166,7 +170,7 @@ event_daily                     -- agregação, PK (date, type, product_id)
 
 1. **Snapshots.** `cart_items` guarda nome e preço no momento do envio. Alterar ou apagar um
    produto nunca pode alterar um pedido antigo.
-2. **`code`** é a cola entre a base de dados e a conversa de WhatsApp. Gerado com alfabeto sem
+2. **`code`** é a cola entre o banco de dados e a conversa de WhatsApp. Gerado com alfabeto sem
    caracteres ambíguos (`0`, `O`, `1`, `I`, `l`), 8 caracteres, formato `RS-XXXXXXXX`. Nunca expor
    ids sequenciais nem uuids ao cliente.
 3. **Produtos nunca são apagados**, apenas `archived`. O apagar só existe para rascunhos sem
@@ -178,9 +182,9 @@ event_daily                     -- agregação, PK (date, type, product_id)
 
 ## 6. Regras de negócio
 
-**Cesta.** Vive só no browser (Zustand + localStorage) até o cliente clicar em enviar. Nesse
-momento, uma Server Action cria `carts` + `cart_items`, gera o `code`, e devolve o link `wa.me`.
-Não há carrinhos abandonados na base de dados.
+**Cesta.** Vive só no navegador (Zustand + localStorage) até o cliente clicar em enviar. Nesse
+momento, uma Server Action cria `carts` + `cart_items`, gera o `code`, e retorna o link `wa.me`.
+Não há carrinhos abandonados no banco de dados.
 
 **Mensagem de WhatsApp.** Curta e sempre com o mesmo formato:
 
@@ -197,23 +201,23 @@ Nada de emojis. Encoding com `encodeURIComponent` sobre a string completa. Se a 
 de 1500 caracteres, corta a lista e escreve "…e mais N itens (ver pelo código)".
 
 **Preço sob consulta.** Entra na cesta normalmente, aparece como "a combinar", não soma ao
-subtotal. Se a cesta tiver algum destes itens, o total mostra-se como "Subtotal parcial".
+subtotal. Se a cesta tiver algum destes itens, o total aparece como "Subtotal parcial".
 
-**Pedido personalizado.** Campos: nome, contacto (WhatsApp ou email), mensagem livre, ficheiros.
+**Pedido personalizado.** Campos: nome, contato (WhatsApp ou email), mensagem livre, arquivos.
 Não perguntar quantidade, material, prazo nem orçamento — isso é tratado na conversa.
 
 **Prazos de produção nunca aparecem no site.**
 
-**Ficheiros.** Whitelist: `stl, 3mf, obj, step, stp, svg, dxf, ai, pdf, png, jpg, jpeg, webp`.
-Máx. **50 MB** por ficheiro, **5 ficheiros** por pedido. Upload directo browser → R2 com presigned
+**Arquivos.** Whitelist: `stl, 3mf, obj, step, stp, svg, dxf, ai, pdf, png, jpg, jpeg, webp`.
+Máx. **50 MB** por arquivo, **5 arquivos** por pedido. Upload direto navegador → R2 com presigned
 URL (o body limit da Vercel não aguenta um STL). Validar extensão **e** mime no servidor antes de
 assinar. Chaves em `quotes/{quote_code}/{uuid}.{ext}`. Retenção: 12 meses (script de limpeza).
 
-**Analytics.** Sem cookies. `session_id` é um uuid em `sessionStorage`. Eventos gravados via
+**Analytics.** Sem cookies. `session_id` é um uuid em `sessionStorage`. Eventos registrados via
 `POST /api/track` com `navigator.sendBeacon`. Ignorar tráfego autenticado no dashboard.
 
-**Autenticação.** Só admins em v1, sem registo público. Utilizadores criados por script CLI.
-Passwords com bcrypt (12 rounds). Middleware protege tudo o que esteja sob `/dashboard`.
+**Autenticação.** Só admins em v1, sem registro público. Usuários criados por script CLI.
+Senhas com bcrypt (12 rounds). Middleware protege tudo o que esteja sob `/dashboard`.
 
 ---
 
@@ -241,9 +245,9 @@ e todos os critérios de aceitação da fase em `PLAN.md` verificados um a um.
 
 ## 9. Regras de trabalho
 
-- **Uma fase de cada vez.** Não começar a seguinte antes de commit da actual.
-- **Não refactorizar** trabalho de fases anteriores sem necessidade da fase actual.
+- **Uma fase de cada vez.** Não começar a seguinte antes de commit da atual.
+- **Não refatorar** trabalho de fases anteriores sem necessidade da fase atual.
 - **Não escrever dados fictícios de negócio** (preços, textos institucionais) fora do `seed.ts`.
 - Se algo estiver ambíguo ou faltar um segredo, escrever em `BLOCKERS.md` e escolher a alternativa
-  mais reversível — nunca ficar parado à espera.
-- Segredos só em `.env.local`. `.env.example` sempre actualizado com as chaves e sem valores.
+  mais reversível — nunca ficar parado esperando.
+- Segredos só em `.env.local`. `.env.example` sempre atualizado com as chaves e sem valores.

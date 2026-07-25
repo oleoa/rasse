@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { updateRequest } from "@/lib/mutations/requests";
 import { STATUS_LABEL, type RequestStatus } from "@/lib/request-status";
 
-const ESTADOS: RequestStatus[] = ["novo", "contactado", "fechado", "perdido"];
+const ESTADOS: RequestStatus[] = ["novo", "contatado", "fechado", "perdido"];
 const DEBOUNCE_MS = 800;
 
 export function RequestControls({
@@ -24,7 +24,7 @@ export function RequestControls({
 }) {
   const [estado, setEstado] = useState<RequestStatus>(status);
   const [notas, setNotas] = useState(internalNotes ?? "");
-  const [guardado, setGuardado] = useState<"parado" | "a guardar" | "guardado">("parado");
+  const [salvo, setSalvo] = useState<"parado" | "salvando" | "salvo">("parado");
   const [erro, setErro] = useState<string | null>(null);
   const [, iniciar] = useTransition();
   const primeiraRenderizacao = useRef(true);
@@ -45,23 +45,23 @@ export function RequestControls({
     });
   }
 
-  // Gravação automática das notas, com debounce.
+  // Salvamento automático das notas, com debounce.
   useEffect(() => {
     if (primeiraRenderizacao.current) {
       primeiraRenderizacao.current = false;
       return;
     }
 
-    setGuardado("a guardar");
+    setSalvo("salvando");
     const timer = window.setTimeout(async () => {
       const r = await updateRequest({ tipo, code, internalNotes: notas.trim() || null });
       if (!r.ok) {
         setErro(r.error);
-        setGuardado("parado");
+        setSalvo("parado");
         return;
       }
-      setGuardado("guardado");
-      window.setTimeout(() => setGuardado("parado"), 2000);
+      setSalvo("salvo");
+      window.setTimeout(() => setSalvo("parado"), 2000);
     }, DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
@@ -101,7 +101,7 @@ export function RequestControls({
         <div className="flex items-center justify-between gap-3">
           <Label htmlFor={`${id}-notas`}>Notas internas</Label>
           <span aria-live="polite" className="text-small text-subtle">
-            {guardado === "a guardar" ? "A guardar…" : guardado === "guardado" ? "Guardado" : ""}
+            {salvo === "salvando" ? "Salvando…" : salvo === "salvo" ? "Salvo" : ""}
           </span>
         </div>
         <Textarea
@@ -112,7 +112,7 @@ export function RequestControls({
           placeholder="O que ficou combinado, prazos, o que falta."
           onChange={(e) => setNotas(e.target.value)}
         />
-        <p className="text-small text-subtle">Grava sozinho. O cliente nunca vê isto.</p>
+        <p className="text-small text-subtle">Salva sozinho. O cliente nunca vê isso.</p>
       </div>
 
       {erro ? (

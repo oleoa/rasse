@@ -11,7 +11,7 @@ export default function NotFound() {
         <Eyebrow>Erro 404</Eyebrow>
         <h1 className="font-display text-h1 font-bold text-display">Esta página não existe.</h1>
         <p className="max-w-[52ch] text-base text-subtle">
-          O endereço pode estar errado, ou a página pode ter mudado de sítio.
+          O endereço pode estar errado, ou a página pode ter mudado de lugar.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild>

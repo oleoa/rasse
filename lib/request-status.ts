@@ -2,21 +2,21 @@
  * Rótulos e estilos dos estados de pedidos e orçamentos.
  *
  * Vive fora de `lib/queries/requests.ts` porque isso é `server-only` e estes
- * valores são precisos também nos componentes de cliente.
+ * valores também são necessários nos componentes de cliente.
  */
 
-export type RequestStatus = "novo" | "contactado" | "fechado" | "perdido";
+export type RequestStatus = "novo" | "contatado" | "fechado" | "perdido";
 
 export const REQUEST_STATUSES: readonly RequestStatus[] = [
   "novo",
-  "contactado",
+  "contatado",
   "fechado",
   "perdido",
 ];
 
 export const STATUS_LABEL: Record<RequestStatus, string> = {
   novo: "Novo",
-  contactado: "Contactado",
+  contatado: "Contatado",
   fechado: "Fechado",
   perdido: "Perdido",
 };
@@ -24,7 +24,7 @@ export const STATUS_LABEL: Record<RequestStatus, string> = {
 export const STATUS_VARIANT: Record<RequestStatus, "default" | "secondary" | "success" | "ghost"> =
   {
     novo: "default",
-    contactado: "secondary",
+    contatado: "secondary",
     fechado: "success",
     perdido: "ghost",
   };

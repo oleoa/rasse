@@ -17,12 +17,12 @@ const SUBMIT_LIMIT = 5;
 const SUBMIT_WINDOW_SECONDS = 60 * 60;
 
 const inputSchema = z.object({
-  name: z.string().trim().min(2, "Diz-nos o teu nome.").max(80),
-  contact: z.string().trim().min(5, "Deixa um WhatsApp ou email.").max(120),
-  message: z.string().trim().min(10, "Descreve a peça que tens em mente.").max(4000),
+  name: z.string().trim().min(2, "Diga o seu nome.").max(80),
+  contact: z.string().trim().min(5, "Deixe um WhatsApp ou e-mail.").max(120),
+  message: z.string().trim().min(10, "Descreva a peça que você tem em mente.").max(4000),
   turnstileToken: z.string().min(1).max(2048),
   sessionId: z.string().max(64),
-  /** Vem do presign. Vazio quando o pedido não leva ficheiros. */
+  /** Vem do presign. Vazio quando o pedido não leva arquivos. */
   code: z.string().max(20).nullable(),
   files: z
     .array(
@@ -47,7 +47,7 @@ export async function submitQuoteRequest(raw: unknown): Promise<QuoteResult> {
 
   const limite = await rateLimit(`orcamento:${ip}`, SUBMIT_LIMIT, SUBMIT_WINDOW_SECONDS);
   if (!limite.allowed) {
-    return { ok: false, error: "Demasiados pedidos deste endereço. Tenta daqui a pouco." };
+    return { ok: false, error: "Muitos pedidos deste endereço. Tente daqui a pouco." };
   }
 
   const parsed = inputSchema.safeParse(raw);
@@ -62,13 +62,13 @@ export async function submitQuoteRequest(raw: unknown): Promise<QuoteResult> {
     return { ok: false, error: turnstile.reason };
   }
 
-  // O código veio do presign; nunca é aceite como veio. Se não houver ficheiros,
+  // O código veio do presign; nunca é aceite como veio. Se não houver arquivos,
   // é gerado aqui de raiz.
   let code: string;
 
   if (input.files.length > 0) {
     if (!input.code || !isValidCode(input.code)) {
-      return { ok: false, error: "Pedido inválido. Recarrega a página e tenta de novo." };
+      return { ok: false, error: "Pedido inválido. Recarregue a página e tente de novo." };
     }
 
     const [existing] = await db
@@ -81,10 +81,10 @@ export async function submitQuoteRequest(raw: unknown): Promise<QuoteResult> {
       return { ok: false, error: "Este pedido já foi enviado." };
     }
 
-    // Cada chave tem de pertencer a este código — senão um cliente podia
-    // apontar para ficheiros de outro pedido.
+    // Cada chave precisa pertencer a este código — senão um cliente podia
+    // apontar para arquivos de outro pedido.
     if (input.files.some((file) => !isQuoteKeyFor(input.code!, file.key))) {
-      return { ok: false, error: "Pedido inválido. Recarrega a página e tenta de novo." };
+      return { ok: false, error: "Pedido inválido. Recarregue a página e tente de novo." };
     }
 
     code = input.code;
@@ -99,7 +99,7 @@ export async function submitQuoteRequest(raw: unknown): Promise<QuoteResult> {
     });
   }
 
-  // Os ficheiros já estão no bucket. Confirmar que existem, que o tamanho
+  // Os arquivos já estão no bucket. Confirmar que existem, que o tamanho
   // declarado bate certo, e que o conteúdo é mesmo do formato indicado.
   const verified: Array<{ key: string; filename: string; mime: string; sizeBytes: number }> = [];
 
@@ -112,7 +112,7 @@ export async function submitQuoteRequest(raw: unknown): Promise<QuoteResult> {
 
     const size = await objectSize(file.key);
     if (size === null) {
-      return { ok: false, error: `O ficheiro "${file.filename}" não chegou ao servidor.` };
+      return { ok: false, error: `O arquivo "${file.filename}" não chegou ao servidor.` };
     }
     if (size > MAX_FILE_BYTES) {
       await deleteObjects(input.files.map((f) => f.key));
@@ -140,7 +140,7 @@ export async function submitQuoteRequest(raw: unknown): Promise<QuoteResult> {
     .returning({ id: quoteRequests.id });
 
   if (!quote) {
-    return { ok: false, error: "Não foi possível registar o pedido. Tenta de novo." };
+    return { ok: false, error: "Não foi possível registrar o pedido. Tente de novo." };
   }
 
   if (verified.length > 0) {

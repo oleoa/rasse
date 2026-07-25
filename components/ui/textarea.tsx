@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-// Mesmo tratamento de campo do Input — ver DESIGN.md, secção 5.
+// Mesmo tratamento de campo do Input — ver DESIGN.md, seção 5.
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

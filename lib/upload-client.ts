@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * PUT directo para o R2 com barra de progresso e cancelamento.
+ * PUT direto para o R2 com barra de progresso e cancelamento.
  *
  * XMLHttpRequest e não `fetch`: só o XHR reporta progresso de upload. O corpo do
- * ficheiro nunca passa pela Vercel — vai do browser para o bucket.
+ * arquivo nunca passa pela Vercel — vai do navegador para o bucket.
  */
 export function uploadToR2(options: {
   url: string;
@@ -48,7 +48,7 @@ export function uploadToR2(options: {
 
     xhr.addEventListener("error", () => {
       cleanup();
-      reject(new Error("O upload falhou. Verifica a ligação."));
+      reject(new Error("O upload falhou. Verifique a conexão."));
     });
 
     xhr.addEventListener("abort", () => {

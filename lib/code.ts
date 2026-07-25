@@ -33,7 +33,7 @@ export function isValidCode(value: string): boolean {
 
 /**
  * Gera um código garantidamente livre. `isTaken` é fornecido por quem chama
- * (camada de mutations), para que este módulo não dependa da base de dados.
+ * (camada de mutations), para que este módulo não dependa do banco de dados.
  */
 export async function generateUniqueCode(
   isTaken: (code: string) => Promise<boolean>,

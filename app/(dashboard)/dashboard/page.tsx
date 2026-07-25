@@ -129,8 +129,8 @@ export default async function DashboardPage({
       </div>
 
       <p className="text-small text-subtle">
-        Os números vêm da agregação diária, que corre às 03:00. Eventos de hoje só aparecem depois
-        dela. O painel não conta as tuas próprias visitas.
+        Os números vêm da agregação diária, que roda às 03:00. Eventos de hoje só aparecem depois
+        dela. O painel não conta as suas próprias visitas.
       </p>
     </div>
   );

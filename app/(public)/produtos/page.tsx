@@ -69,7 +69,7 @@ export default async function ProdutosPage({
                 ? "Essa categoria não existe."
                 : "Nenhuma peça nesta categoria."
             }
-            description="Vê o catálogo completo ou pede uma peça sob medida."
+            description="Veja o catálogo completo ou encomende uma peça sob medida."
             action={
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Button asChild variant="outline">

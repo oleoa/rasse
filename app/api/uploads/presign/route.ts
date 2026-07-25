@@ -31,8 +31,8 @@ const bodySchema = z.object({
 /**
  * Assina os URLs de upload de um pedido inteiro numa só chamada.
  *
- * Um token do Turnstile é de uso único, por isso não daria para assinar ficheiro
- * a ficheiro. O código do pedido é gerado aqui, para as chaves ficarem no
+ * Um token do Turnstile é de uso único, por isso não daria para assinar arquivo
+ * a arquivo. O código do pedido é gerado aqui, para as chaves ficarem no
  * formato `quotes/{quote_code}/{uuid}.{ext}` do CLAUDE.md; a linha em
  * `quote_requests` só nasce na submissão do formulário.
  */
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   const limite = await rateLimit(`presign:${ip}`, PRESIGN_LIMIT, PRESIGN_WINDOW_SECONDS);
   if (!limite.allowed) {
     return NextResponse.json(
-      { error: "Demasiados pedidos. Tenta daqui a pouco." },
+      { error: "Muitos pedidos. Tente daqui a pouco." },
       { status: 429, headers: { "retry-after": String(limite.retryAfterSeconds) } },
     );
   }

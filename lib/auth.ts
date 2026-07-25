@@ -14,8 +14,8 @@ const credentialsSchema = z.object({
 
 /**
  * Hash descartável, com o mesmo custo dos verdadeiros. Comparar contra ele
- * quando o utilizador não existe faz o pedido demorar o mesmo que uma password
- * errada — sem isto, o tempo de resposta denunciava quais os emails registados.
+ * quando o usuário não existe faz o pedido demorar o mesmo que uma senha
+ * errada — sem isto, o tempo de resposta denunciava quais os emails registrados.
  */
 const DUMMY_HASH = "$2a$12$C6UzMDM.H6dfI/f/IKcEe.4a0iSm2s5vHNvE0Kt2GMmoIcQlmB4rW";
 
@@ -24,8 +24,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: "E-mail", type: "email" },
+        password: { label: "Senha", type: "password" },
       },
       async authorize(raw) {
         const parsed = credentialsSchema.safeParse(raw);
@@ -40,7 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           user?.passwordHash ?? DUMMY_HASH,
         );
 
-        // Uma única saída para "não existe" e "password errada".
+        // Uma única saída para "não existe" e "senha errada".
         if (!user || !matches) return null;
 
         return { id: user.id, email: user.email, name: user.name };

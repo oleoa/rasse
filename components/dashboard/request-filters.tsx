@@ -51,7 +51,7 @@ export function RequestFilters({
           className="rounded-sm border border-input bg-char-700 px-3.5 py-2.5 font-body text-[15px] text-body outline-none"
         >
           <option value="">Todos</option>
-          {(["novo", "contactado", "fechado", "perdido"] as const).map((s) => (
+          {(["novo", "contatado", "fechado", "perdido"] as const).map((s) => (
             <option key={s} value={s}>
               {STATUS_LABEL[s]}
             </option>

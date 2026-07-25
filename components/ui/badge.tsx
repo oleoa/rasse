@@ -8,7 +8,7 @@ import { Slot } from "radix-ui/slot";
 
 import { cn } from "@/lib/utils";
 
-// DESIGN.md, secção 5: font-accent 11px caixa alta tracked, cantos em pílula
+// DESIGN.md, seção 5: font-accent 11px caixa alta tracked, cantos em pílula
 // (o único caso), fundo de cobre a 14% e texto em âmbar.
 const badgeVariants = cva(
   "group/badge font-accent tracking-caps inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2.5 py-1 text-[11px] leading-none whitespace-nowrap uppercase transition-colors focus-visible:shadow-(--focus-ring) [&>svg]:pointer-events-none [&>svg]:size-3!",

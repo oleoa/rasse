@@ -63,7 +63,7 @@ variações mudam de peça para peça, e isso é característica do produto, nã
 
 Compras feitas fora do estabelecimento comercial têm o prazo de arrependimento previsto no artigo 49
 do Código de Defesa do Consumidor. Esse direito **não se aplica** a peças personalizadas, feitas sob
-encomenda conforme especificação sua.
+pedido conforme especificação sua.
 
 ## Limites
 

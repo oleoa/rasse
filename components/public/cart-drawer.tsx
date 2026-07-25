@@ -52,7 +52,7 @@ export function CartDrawer() {
       <SheetContent side="right" className="flex w-full flex-col bg-card sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="font-display text-h3 tracking-caps text-display">
-            A tua cesta
+            A sua cesta
           </SheetTitle>
         </SheetHeader>
         <CopperRule className="mx-4" />

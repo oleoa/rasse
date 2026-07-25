@@ -23,7 +23,7 @@ export async function verifyTurnstile(
   remoteIp?: string | null,
 ): Promise<TurnstileResult> {
   if (typeof token !== "string" || token.length === 0 || token.length > 2048) {
-    return { ok: false, reason: "Verificação anti-spam em falta." };
+    return { ok: false, reason: "Verificação anti-spam ausente." };
   }
 
   const body = new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: token });
@@ -42,7 +42,7 @@ export async function verifyTurnstile(
   } catch {
     return {
       ok: false,
-      reason: "Não foi possível validar a verificação anti-spam. Tenta de novo.",
+      reason: "Não foi possível validar a verificação anti-spam. Tente de novo.",
     };
   }
 
@@ -57,11 +57,11 @@ export async function verifyTurnstile(
   }
 
   if (codes.includes("timeout-or-duplicate")) {
-    return { ok: false, reason: "A verificação expirou. Tenta enviar de novo." };
+    return { ok: false, reason: "A verificação expirou. Tente enviar de novo." };
   }
 
   return {
     ok: false,
-    reason: "A verificação anti-spam falhou. Recarrega a página e tenta de novo.",
+    reason: "A verificação anti-spam falhou. Recarregue a página e tente de novo.",
   };
 }

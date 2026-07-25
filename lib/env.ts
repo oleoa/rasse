@@ -12,27 +12,29 @@ const optionalUrl = (message: string) =>
   );
 
 const required = (name: string) =>
-  z.string({ error: `${name} em falta. Ver .env.example.` }).min(1, `${name} está vazia.`);
+  z.string({ error: `${name} ausente. Ver .env.example.` }).min(1, `${name} está vazia.`);
 
 const envSchema = z.object({
   DATABASE_URL: z
-    .string({ error: "DATABASE_URL em falta. Copia .env.example para .env.local e preenche-a." })
+    .string({
+      error: "DATABASE_URL ausente. Copie .env.example para .env.local e preencha o valor.",
+    })
     .min(1, "DATABASE_URL está vazia.")
     .refine(
       (value) => value.startsWith("postgres://") || value.startsWith("postgresql://"),
-      "DATABASE_URL tem de ser uma connection string Postgres (Neon), a começar por postgres://.",
+      "DATABASE_URL precisa ser uma connection string Postgres (Neon), a começar por postgres://.",
     ),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
-  // Cloudflare R2. Obrigatórias: sem elas não há upload de ficheiros.
+  // Cloudflare R2. Obrigatórias: sem elas não há upload de arquivos.
   R2_ACCOUNT_ID: required("R2_ACCOUNT_ID"),
   R2_ACCESS_KEY_ID: required("R2_ACCESS_KEY_ID"),
   R2_SECRET_ACCESS_KEY: required("R2_SECRET_ACCESS_KEY"),
   R2_BUCKET: required("R2_BUCKET"),
-  // Bucket sem acesso público, só para os ficheiros dos clientes.
+  // Bucket sem acesso público, só para os arquivos dos clientes.
   R2_PRIVATE_BUCKET: required("R2_PRIVATE_BUCKET"),
   NEXT_PUBLIC_R2_PUBLIC_URL: optionalUrl(
-    "NEXT_PUBLIC_R2_PUBLIC_URL tem de ser um URL completo, com protocolo.",
+    "NEXT_PUBLIC_R2_PUBLIC_URL precisa ser uma URL completa, com protocolo.",
   ),
 
   // Cloudflare Turnstile. Obrigatórias: nunca há caminho que salte a verificação.
@@ -42,9 +44,9 @@ const envSchema = z.object({
   // Auth.js: assina os JWT de sessão e os tokens de pré-visualização.
   AUTH_SECRET: required("AUTH_SECRET"),
 
-  // URL público do site, usado como metadataBase das metatags Open Graph.
+  // URL pública do site, usada como metadataBase das metatags Open Graph.
   NEXT_PUBLIC_SITE_URL: optionalUrl(
-    "NEXT_PUBLIC_SITE_URL tem de ser um URL completo, com protocolo.",
+    "NEXT_PUBLIC_SITE_URL precisa ser uma URL completa, com protocolo.",
   ),
 });
 

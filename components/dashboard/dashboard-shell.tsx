@@ -63,7 +63,9 @@ export function DashboardShell({
       <aside
         id="navegacao-painel"
         className={cn(
-          "flex-col gap-6 border-b border-border bg-sidebar p-4 lg:flex lg:w-64 lg:shrink-0 lg:border-r lg:border-b-0 lg:p-6",
+          // lg:self-start impede o stretch do flex de esticar o aside até a altura do conteúdo;
+          // sem ele o sticky não tem folga para deslizar e o rodapé cai para o fim do documento.
+          "flex-col gap-6 border-b border-border bg-sidebar p-4 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-64 lg:shrink-0 lg:self-start lg:overflow-y-auto lg:border-r lg:border-b-0 lg:p-6",
           open ? "flex" : "hidden",
         )}
       >
@@ -75,7 +77,7 @@ export function DashboardShell({
         </Link>
         <CopperRule className="hidden lg:block" />
 
-        <nav aria-label="Secções do painel" className="flex flex-col gap-1">
+        <nav aria-label="Seções do painel" className="flex flex-col gap-1">
           {DASHBOARD_NAV.map((item) => (
             <Link
               key={item.href}

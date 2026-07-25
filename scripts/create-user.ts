@@ -4,21 +4,21 @@ import { neon } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
 
 /**
- * Cria um administrador. Não há registo público — os utilizadores nascem todos
- * por aqui, como manda a secção 6 do CLAUDE.md.
+ * Cria um administrador. Não há registro público — os usuários nascem todos
+ * por aqui, como manda a seção 6 do CLAUDE.md.
  *
  *   pnpm user:create
  *   pnpm user:create -- --email=a@b.c --name="Nome"
  *
- * A password é sempre pedida no stdin, para não ficar no histórico da shell nem
+ * A senha é sempre pedida no stdin, para não ficar no histórico da shell nem
  * nas variáveis de ambiente.
  */
 
 const ROUNDS = 12;
-const MIN_PASSWORD = 10;
+const MIN_SENHA = 10;
 
 const { DATABASE_URL } = process.env;
-if (!DATABASE_URL) throw new Error("DATABASE_URL em falta. Corre com --env-file=.env.local.");
+if (!DATABASE_URL) throw new Error("DATABASE_URL ausente. Rode com --env-file=.env.local.");
 
 const sql = neon(DATABASE_URL);
 
@@ -40,32 +40,32 @@ function argOf(name: string): string | undefined {
 }
 
 try {
-  const email = (argOf("email") ?? (await perguntar("Email: "))).trim().toLowerCase();
+  const email = (argOf("email") ?? (await perguntar("E-mail: "))).trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    throw new Error(`Email inválido: ${email}`);
+    throw new Error(`E-mail inválido: ${email}`);
   }
 
   const [existente] = await sql`select id from users where email = ${email}`;
-  if (existente) throw new Error(`Já existe um utilizador com o email ${email}.`);
+  if (existente) throw new Error(`Já existe um usuário com o e-mail .`);
 
   const name = (argOf("name") ?? (await perguntar("Nome: "))).trim();
-  if (name.length < 2) throw new Error("O nome tem de ter pelo menos 2 caracteres.");
+  if (name.length < 2) throw new Error("O nome precisa ter pelo menos 2 caracteres.");
 
-  const password = await perguntar(`Password (mín. ${MIN_PASSWORD} caracteres): `);
-  if (password.length < MIN_PASSWORD) {
-    throw new Error(`A password tem de ter pelo menos ${MIN_PASSWORD} caracteres.`);
+  const senha = await perguntar(`Senha (mín. ${MIN_SENHA} caracteres): `);
+  if (senha.length < MIN_SENHA) {
+    throw new Error(`A senha precisa ter pelo menos ${MIN_SENHA} caracteres.`);
   }
 
-  if (password !== (await perguntar("Repete a password: "))) {
-    throw new Error("As passwords não coincidem.");
+  if (senha !== (await perguntar("Repita a senha: "))) {
+    throw new Error("As senhas não coincidem.");
   }
 
   const [criado] = await sql`
     insert into users (email, password_hash, name)
-    values (${email}, ${await bcrypt.hash(password, ROUNDS)}, ${name})
+    values (${email}, ${await bcrypt.hash(senha, ROUNDS)}, ${name})
     returning email, name`;
 
-  stdout.write(`\nUtilizador criado: ${criado?.name} <${criado?.email}>\n`);
+  stdout.write(`\nUsuário criado: ${criado?.name} <${criado?.email}>\n`);
 } finally {
   rl.close();
 }

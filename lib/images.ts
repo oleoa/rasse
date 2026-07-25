@@ -1,10 +1,10 @@
 /**
  * As chaves com o prefixo `seed/` são os placeholders locais em `public/seed/`,
  * criados na Fase 1. Todas as outras são objetos do R2 e resolvem contra
- * `NEXT_PUBLIC_R2_PUBLIC_URL`. Sem essa variável, a função devolve uma string
+ * `NEXT_PUBLIC_R2_PUBLIC_URL`. Sem essa variável, a função retorna uma string
  * vazia e quem chama trata a ausência de imagem.
  *
- * O prefixo `NEXT_PUBLIC_` é obrigatório: isto também corre no browser, nas
+ * O prefixo `NEXT_PUBLIC_` é obrigatório: isto também roda no navegador, nas
  * linhas da cesta. Sem ele, o valor seria `undefined` do lado do cliente.
  */
 const SEED_PREFIX = "seed/";
@@ -18,7 +18,7 @@ export function imageUrl(r2Key: string): string {
   return `${base.replace(/\/$/, "")}/${r2Key}`;
 }
 
-/** O optimizador do Next recusa SVG sem `dangerouslyAllowSVG`; os placeholders passam ao lado. */
+/** O otimizador do Next recusa SVG sem `dangerouslyAllowSVG`; os placeholders passam ao lado. */
 export function isUnoptimized(r2Key: string): boolean {
   return r2Key.endsWith(".svg");
 }

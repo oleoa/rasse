@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Paginacao, RequestFilters } from "@/components/dashboard/request-filters";
+import { FiltrosSkeleton } from "@/components/dashboard/skeletons";
 import { EmptyState } from "@/components/public/empty-state";
 import { CopperRule } from "@/components/public/typography";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ export default async function PedidosPage({
   searchParams: Promise<{ q?: string; status?: string; pagina?: string }>;
 }) {
   const params = await searchParams;
-  const status = (["novo", "contactado", "fechado", "perdido"] as const).find(
+  const status = (["novo", "contatado", "fechado", "perdido"] as const).find(
     (s) => s === params.status,
   );
 
@@ -37,7 +38,7 @@ export default async function PedidosPage({
         </p>
       </div>
 
-      <Suspense fallback={<p className="text-small text-subtle">A carregar…</p>}>
+      <Suspense fallback={<FiltrosSkeleton />}>
         <RequestFilters
           base="/dashboard/pedidos"
           filtros={{ q: params.q ?? "", status: status ?? "" }}

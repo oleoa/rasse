@@ -4,7 +4,7 @@ const KEY = "rasse-sessao";
 
 /**
  * Identificador de sessão para analytics: um uuid em `sessionStorage`, sem
- * cookies — ver CLAUDE.md, secção 6. A Fase 9 usa o mesmo valor no `/api/track`.
+ * cookies — ver CLAUDE.md, seção 6. A Fase 9 usa o mesmo valor no `/api/track`.
  */
 export function getSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -17,7 +17,7 @@ export function getSessionId(): string {
     window.sessionStorage.setItem(KEY, id);
     return id;
   } catch {
-    // sessionStorage bloqueado (modo privado antigo, políticas do browser).
+    // sessionStorage bloqueado (modo privado antigo, políticas do navegador).
     return crypto.randomUUID();
   }
 }

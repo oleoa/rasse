@@ -193,6 +193,9 @@
   --text-h1--line-height: 1.1;
   --text-hero: clamp(40px, 5vw, 64px);
   --text-hero--line-height: 1.1;
+  /* Só para o hero full-bleed da home, onde a headline ocupa a tela inteira. */
+  --text-hero-xl: clamp(48px, 7vw, 92px);
+  --text-hero-xl--line-height: 1.1;
 
   --tracking-caps: 0.14em;
   --tracking-eyebrow: 0.28em;
@@ -277,4 +280,43 @@
   height: 1px;
   border: 0;
   background: var(--copper-600);
+}
+
+/* Carregamento: fade lento em vez do animate-pulse do Tailwind, que vai a 50% de
+   opacidade num ease próprio e destoa do movimento da marca. */
+@keyframes respirar {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility animate-respirar {
+  animation: respirar 1.6s var(--default-transition-timing-function) infinite;
+}
+
+@utility animate-girar {
+  animation: girar 900ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-respirar {
+    animation: none;
+    /* Parado num tom intermediário: sem movimento, mas ainda legível como espaço
+       reservado e não como conteúdo real. */
+    opacity: 0.75;
+  }
+
+  .animate-girar {
+    animation: none;
+  }
 }

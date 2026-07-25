@@ -10,8 +10,8 @@ import { authenticate } from "./actions";
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="lg" disabled={pending}>
-      {pending ? "A entrar…" : "Entrar"}
+    <Button type="submit" size="lg" carregando={pending}>
+      {pending ? "Entrando…" : "Entrar"}
     </Button>
   );
 }
@@ -24,12 +24,12 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">E-mail</Label>
         <Input id="email" name="email" type="email" autoComplete="username" required autoFocus />
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Senha</Label>
         <Input
           id="password"
           name="password"

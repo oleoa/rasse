@@ -47,7 +47,7 @@ export default async function QuemSomosPage() {
         ) : (
           <EmptyState
             title="O texto da oficina ainda não foi escrito."
-            description="Entra pelo painel, em Configurações."
+            description="Entre pelo painel, em Configurações."
           />
         )}
 

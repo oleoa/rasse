@@ -53,14 +53,14 @@ export function SettingsForm({ inicial }: { inicial: SettingsDraft }) {
   const [valores, setValores] = useState(inicial);
   const [erros, setErros] = useState<Record<string, string>>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
-  const [guardado, setGuardado] = useState(false);
+  const [salvo, setSalvo] = useState(false);
   const [pendente, iniciar] = useTransition();
   const router = useRouter();
   const id = useId();
 
   const alterar = (mudanca: Partial<SettingsDraft>) => {
     setValores((v) => ({ ...v, ...mudanca }));
-    setGuardado(false);
+    setSalvo(false);
   };
 
   function submeter(event: React.FormEvent<HTMLFormElement>) {
@@ -76,7 +76,7 @@ export function SettingsForm({ inicial }: { inicial: SettingsDraft }) {
         if (campo && !mapa[campo]) mapa[campo] = issue.message;
       }
       setErros(mapa);
-      setErroGeral("Corrige os campos assinalados.");
+      setErroGeral("Corrija os campos marcados.");
       return;
     }
 
@@ -87,7 +87,7 @@ export function SettingsForm({ inicial }: { inicial: SettingsDraft }) {
         setErroGeral(r.error);
         return;
       }
-      setGuardado(true);
+      setSalvo(true);
       router.refresh();
     });
   }
@@ -97,7 +97,7 @@ export function SettingsForm({ inicial }: { inicial: SettingsDraft }) {
       <section className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
           <CopperRule />
-          <h2 className="font-display text-h3 font-bold text-display">Contacto</h2>
+          <h2 className="font-display text-h3 font-bold text-display">Contato</h2>
         </div>
 
         <Campo label="Nome do negócio" htmlFor={`${id}-nome`} error={erros.businessName}>
@@ -114,7 +114,7 @@ export function SettingsForm({ inicial }: { inicial: SettingsDraft }) {
           label="WhatsApp"
           htmlFor={`${id}-whatsapp`}
           error={erros.whatsappNumber}
-          hint="Formato internacional, só dígitos. Ex: 5511987654321. É para aqui que vão todos os pedidos."
+          hint="Formato internacional, só dígitos. Ex: 5511987654321. É para cá que vão todos os pedidos."
         >
           <Input
             id={`${id}-whatsapp`}
@@ -136,7 +136,7 @@ export function SettingsForm({ inicial }: { inicial: SettingsDraft }) {
           />
         </Campo>
 
-        <Campo label="Email de contacto" htmlFor={`${id}-email`} error={erros.contactEmail}>
+        <Campo label="E-mail de contato" htmlFor={`${id}-email`} error={erros.contactEmail}>
           <Input
             id={`${id}-email`}
             type="email"
@@ -210,12 +210,12 @@ export function SettingsForm({ inicial }: { inicial: SettingsDraft }) {
       </section>
 
       <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-border bg-background py-4">
-        <Button type="submit" size="lg" disabled={pendente}>
-          {pendente ? "A guardar…" : "Guardar"}
+        <Button type="submit" size="lg" carregando={pendente}>
+          {pendente ? "Salvando…" : "Salvar"}
         </Button>
-        {guardado ? (
+        {salvo ? (
           <Badge variant="success" aria-live="polite">
-            Guardado
+            Salvo
           </Badge>
         ) : null}
         {erroGeral ? (

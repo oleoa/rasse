@@ -6,7 +6,7 @@ import { CartPageClient } from "./cart-page-client";
 
 export const metadata: Metadata = {
   title: "Cesta",
-  description: "As peças que escolheste, prontas a enviar pelo WhatsApp.",
+  description: "As peças que você escolheu, prontas para enviar pelo WhatsApp.",
   robots: { index: false, follow: true },
 };
 
@@ -17,10 +17,10 @@ export default function CestaPage() {
         eyebrow="Pedido"
         title={
           <>
-            A tua <Accent>cesta</Accent>.
+            A sua <Accent>cesta</Accent>.
           </>
         }
-        description="Confere as peças e envia. O fecho do negócio acontece na conversa."
+        description="Confira as peças e envie. O fechamento do negócio acontece na conversa."
       />
 
       <Container className="pb-20">

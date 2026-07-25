@@ -115,7 +115,7 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
         <p aria-live="polite" className="text-small">
           {cheio ? (
             <span className="text-danger">
-              A cesta chegou ao limite de {MAX_LINES} linhas. Envia o pedido ou remove alguma peça.
+              A cesta chegou ao limite de {MAX_LINES} linhas. Envie o pedido ou remova alguma peça.
             </span>
           ) : added ? (
             <span className="text-subtle">

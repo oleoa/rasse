@@ -7,7 +7,7 @@ import { db } from "@/db";
  * Agrega os eventos de um dia em `event_daily`.
  *
  * Idempotente: o `ON CONFLICT` escreve o valor recontado por cima, em vez de
- * somar. Correr duas vezes para o mesmo dia dá exactamente o mesmo resultado.
+ * somar. Rodar duas vezes para o mesmo dia dá exatamente o mesmo resultado.
  *
  * O dia é o dia civil em `America/Sao_Paulo`, não em UTC — senão a fronteira
  * ficava às 21h para quem está no Brasil.
@@ -32,7 +32,7 @@ export async function aggregateDay(date: string): Promise<{ linhas: number }> {
   return { linhas: linhas.length };
 }
 
-/** Ontem e hoje, para apanhar eventos que chegaram depois da meia-noite. */
+/** Ontem e hoje, para pegar eventos que chegaram depois da meia-noite. */
 export async function aggregateRecent(): Promise<{ dias: string[]; linhas: number }> {
   const dias = await db.execute(sql`
     select to_char(d, 'YYYY-MM-DD') as dia

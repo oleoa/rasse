@@ -6,7 +6,7 @@ function base(value: string): string {
 
 /**
  * Slug final: "Tábua de Churrasco" fica "tabua-de-churrasco". Usar ao gerar a
- * partir do nome, ao sair do campo, e antes de gravar.
+ * partir do nome, ao sair do campo, e antes de salvar.
  */
 export function slugify(value: string): string {
   return base(value)

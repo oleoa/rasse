@@ -34,7 +34,7 @@ const saveSchema = z.object({
 });
 
 export async function saveProduct(raw: unknown): Promise<ActionResult<{ id: string }>> {
-  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const parsed = saveSchema.safeParse(raw);
   if (!parsed.success) {
@@ -48,8 +48,8 @@ export async function saveProduct(raw: unknown): Promise<ActionResult<{ id: stri
 
   const { id, product, variants, images } = parsed.data;
 
-  // Slug único, verificado antes de gravar para dar erro no campo em vez de
-  // deixar rebentar a constraint da base de dados.
+  // Slug único, verificado antes de salvar para dar erro no campo em vez de
+  // deixar estourar a constraint do banco de dados.
   const [duplicado] = await db
     .select({ id: products.id })
     .from(products)
@@ -82,7 +82,7 @@ export async function saveProduct(raw: unknown): Promise<ActionResult<{ id: stri
       .from(products)
       .where(eq(products.id, id))
       .limit(1);
-    if (!antigo) return { ok: false, error: "Este produto já não existe." };
+    if (!antigo) return { ok: false, error: "Este produto não existe mais." };
     slugAntigo = antigo.slug;
     await db.update(products).set(valores).where(eq(products.id, id));
   } else {
@@ -91,7 +91,7 @@ export async function saveProduct(raw: unknown): Promise<ActionResult<{ id: stri
     productId = criado.id;
   }
 
-  if (!productId) return { ok: false, error: "Não foi possível gravar o produto." };
+  if (!productId) return { ok: false, error: "Não foi possível salvar o produto." };
 
   await sincronizarVariantes(productId, variants);
   await sincronizarImagens(productId, images);
@@ -140,7 +140,7 @@ async function sincronizarImagens(
 ): Promise<void> {
   const mantidas = images.map((i) => i.id).filter((v): v is string => v !== null);
 
-  // As que saíram da lista têm de desaparecer também do R2.
+  // As que saíram da lista precisam desaparecer também do R2.
   const removidas = await db
     .select({ r2Key: productImages.r2Key })
     .from(productImages)
@@ -162,7 +162,7 @@ async function sincronizarImagens(
           : eq(productImages.productId, productId),
       );
     await deleteObjects(removidas.map((r) => r.r2Key)).catch(() => {
-      // O objecto pode já não existir; a linha é que não podia ficar.
+      // O objeto pode não existir mais; a linha é que não podia ficar.
     });
   }
 
@@ -191,7 +191,7 @@ const bulkSchema = z.object({
 });
 
 export async function bulkUpdateStatus(raw: unknown): Promise<ActionResult<{ afetados: number }>> {
-  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const parsed = bulkSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "Pedido inválido." };
@@ -216,11 +216,11 @@ export async function bulkUpdateStatus(raw: unknown): Promise<ActionResult<{ afe
 }
 
 /**
- * Apagar só existe para rascunhos sem pedidos associados — CLAUDE.md, secção 5.
- * Tudo o resto arquiva-se.
+ * Apagar só existe para rascunhos sem pedidos associados — CLAUDE.md, seção 5.
+ * Todo o resto é arquivado.
  */
 export async function deleteProduct(raw: unknown): Promise<ActionResult> {
-  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const id = z.uuid().safeParse(raw);
   if (!id.success) return { ok: false, error: "Pedido inválido." };
@@ -231,10 +231,10 @@ export async function deleteProduct(raw: unknown): Promise<ActionResult> {
     .where(eq(products.id, id.data))
     .limit(1);
 
-  if (!produto) return { ok: false, error: "Este produto já não existe." };
+  if (!produto) return { ok: false, error: "Este produto não existe mais." };
 
   if (produto.status !== "draft") {
-    return { ok: false, error: "Só rascunhos podem ser apagados. Arquiva o produto." };
+    return { ok: false, error: "Só rascunhos podem ser excluídos. Arquive o produto." };
   }
 
   const [comPedido] = await db
@@ -244,7 +244,10 @@ export async function deleteProduct(raw: unknown): Promise<ActionResult> {
     .limit(1);
 
   if (comPedido) {
-    return { ok: false, error: "Este produto já apareceu num pedido. Arquiva-o em vez de apagar." };
+    return {
+      ok: false,
+      error: "Este produto já apareceu num pedido. Arquive-o em vez de excluir.",
+    };
   }
 
   const imagens = await db

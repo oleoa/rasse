@@ -11,9 +11,9 @@ export type RateLimitResult = {
 };
 
 /**
- * Contador por janela deslizante, atómico num único INSERT ... ON CONFLICT.
+ * Contador por janela deslizante, atômico num único INSERT ... ON CONFLICT.
  *
- * Vive na base de dados e não em memória: na Vercel cada invocação pode cair
+ * Vive no banco de dados e não em memória: na Vercel cada invocação pode cair
  * numa instância diferente, e um `Map` local não travaria nada.
  */
 export async function rateLimit(

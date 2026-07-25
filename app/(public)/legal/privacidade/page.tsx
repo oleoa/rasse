@@ -64,12 +64,12 @@ própria.
 
 Os arquivos enviados em pedidos de orçamento são apagados após **12 meses**. Os registros de pedidos
 são mantidos enquanto forem necessários para o histórico comercial. Os eventos de navegação são
-agregados em contagens diárias, sem qualquer ligação a você.
+agregados em contagens diárias, sem qualquer vínculo com você.
 
 ## Seus direitos
 
 A LGPD garante a você o direito de confirmar se tratamos seus dados, acessá-los, corrigi-los, pedir
-anonimização, bloqueio ou eliminação, pedir a portabilidade, revogar consentimento e saber com quem
+anonimização, bloqueio ou exclusão, pedir a portabilidade, revogar consentimento e saber com quem
 compartilhamos. Para exercer qualquer um desses direitos, fale conosco pelo canal indicado no
 rodapé. Respondemos no prazo previsto em lei.
 

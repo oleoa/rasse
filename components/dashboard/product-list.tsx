@@ -48,6 +48,9 @@ export function ProductList({
 }) {
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [erro, setErro] = useState<string | null>(null);
+  // O useTransition é partilhado pelos três botões; guardamos qual foi clicado
+  // para o giro não aparecer nos outros dois.
+  const [emAcao, setEmAcao] = useState<"publish" | "archive" | "draft" | null>(null);
   const [pendente, iniciar] = useTransition();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -65,6 +68,7 @@ export function ProductList({
   function acaoEmMassa(action: "publish" | "archive" | "draft") {
     if (selecionados.length === 0) return;
     setErro(null);
+    setEmAcao(action);
     iniciar(async () => {
       const r = await bulkUpdateStatus({ ids: selecionados, action });
       if (!r.ok) {
@@ -142,6 +146,7 @@ export function ProductList({
             type="button"
             size="sm"
             disabled={pendente}
+            carregando={pendente && emAcao === "publish"}
             onClick={() => acaoEmMassa("publish")}
           >
             Publicar
@@ -151,6 +156,7 @@ export function ProductList({
             size="sm"
             variant="outline"
             disabled={pendente}
+            carregando={pendente && emAcao === "archive"}
             onClick={() => acaoEmMassa("archive")}
           >
             Arquivar
@@ -160,10 +166,14 @@ export function ProductList({
             size="sm"
             variant="ghost"
             disabled={pendente}
+            carregando={pendente && emAcao === "draft"}
             onClick={() => acaoEmMassa("draft")}
           >
             Voltar a rascunho
           </Button>
+          <span aria-live="polite" className="text-small text-subtle">
+            {pendente ? "Aplicando…" : ""}
+          </span>
         </div>
       ) : null}
 

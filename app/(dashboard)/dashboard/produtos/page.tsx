@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ProductList } from "@/components/dashboard/product-list";
+import { FiltrosSkeleton, TabelaSkeleton } from "@/components/dashboard/skeletons";
 import { EmptyState } from "@/components/public/empty-state";
 import { CopperRule } from "@/components/public/typography";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ export default async function ProdutosPainelPage({
       {resultado.total === 0 && !params.q && !status && !params.categoria ? (
         <EmptyState
           title="Ainda não há produtos."
-          description="Cria o primeiro para o catálogo deixar de estar vazio."
+          description="Crie o primeiro para o catálogo deixar de estar vazio."
           action={
             <Button asChild>
               <Link href="/dashboard/produtos/novo">Novo produto</Link>
@@ -54,7 +55,14 @@ export default async function ProdutosPainelPage({
           }
         />
       ) : (
-        <Suspense fallback={<p className="text-small text-subtle">A carregar…</p>}>
+        <Suspense
+          fallback={
+            <div className="flex flex-col gap-6">
+              <FiltrosSkeleton seletores={2} />
+              <TabelaSkeleton colunas={6} />
+            </div>
+          }
+        >
           <ProductList
             linhas={resultado.linhas}
             categories={categories}

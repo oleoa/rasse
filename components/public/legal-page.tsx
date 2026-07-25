@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/format";
 
 /**
  * O CNPJ vem das configurações. Enquanto não existir, fica o marcador `{{CNPJ}}`
- * visível — a secção 7 do CLAUDE.md proíbe inventar dados da empresa.
+ * visível — a seção 7 do CLAUDE.md proíbe inventar dados da empresa.
  */
 export function LegalPage({
   eyebrow,

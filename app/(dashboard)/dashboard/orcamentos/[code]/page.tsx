@@ -21,7 +21,7 @@ export default async function OrcamentoPage({ params }: { params: Promise<{ code
   if (!orcamento) notFound();
 
   const numero = whatsappFromContact(orcamento.contact);
-  const mensagem = `Olá ${orcamento.name}! Sobre o teu pedido ${orcamento.code}:`;
+  const mensagem = `Olá ${orcamento.name}! Sobre o seu pedido ${orcamento.code}:`;
 
   return (
     <div className="flex flex-col gap-8">
@@ -57,7 +57,7 @@ export default async function OrcamentoPage({ params }: { params: Promise<{ code
           <div className="flex flex-col gap-4">
             <CopperRule />
             <h2 className="font-display text-h3 font-bold text-display">
-              Ficheiros ({orcamento.files.length})
+              Arquivos ({orcamento.files.length})
             </h2>
             <QuoteFiles
               code={orcamento.code}
@@ -79,7 +79,7 @@ export default async function OrcamentoPage({ params }: { params: Promise<{ code
               </Button>
             ) : (
               <p className="text-small text-subtle">
-                O contacto não parece um número de telefone; responde por email.
+                O contato não parece um número de telefone; responde por email.
               </p>
             )}
             <Button asChild variant="ghost" size="sm">

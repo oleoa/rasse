@@ -16,6 +16,7 @@
     "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local db/seed.ts",
     "db:drop": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/db-drop.ts",
     "db:reset": "pnpm db:drop && pnpm db:migrate && pnpm db:seed",
+    "db:imagens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/atualizar-imagens-seed.ts",
     "db:studio": "drizzle-kit studio",
     "files:clean": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/clean-files.ts",
     "user:create": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env.local scripts/create-user.ts"

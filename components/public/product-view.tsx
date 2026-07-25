@@ -12,7 +12,7 @@ import { SITE_URL } from "@/lib/site";
 import type { ProductDetail, ProductListItem } from "@/lib/queries/products";
 
 /**
- * A página pública e a pré-visualização de rascunhos renderizam exactamente o
+ * A página pública e a pré-visualização de rascunhos renderizam exatamente o
  * mesmo — a diferença está só em quem consegue chegar a cada rota.
  */
 export function ProductView({
@@ -25,7 +25,7 @@ export function ProductView({
   aviso?: React.ReactNode;
 }) {
   const cover = product.images[0];
-  // O JSON-LD precisa de URLs absolutos; imageUrl devolve caminhos locais para o seed.
+  // O JSON-LD precisa de URLs absolutas; imageUrl retorna caminhos locais para o seed.
   const coverUrl = cover ? new URL(imageUrl(cover.r2Key), SITE_URL).toString() : undefined;
 
   const jsonLd = {
@@ -49,7 +49,7 @@ export function ProductView({
     <>
       <script
         type="application/ld+json"
-        // JSON serializado, sem input do utilizador na estrutura.
+        // JSON serializado, sem input do usuário na estrutura.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 

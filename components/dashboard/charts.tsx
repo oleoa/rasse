@@ -99,7 +99,7 @@ export function TopProdutosLista({
   rotulo: string;
 }) {
   if (dados.length === 0) {
-    return <Vazio mensagem={`Ainda não há ${rotulo.toLowerCase()} registados.`} />;
+    return <Vazio mensagem={`Ainda não há ${rotulo.toLowerCase()} registrados.`} />;
   }
 
   const maximo = Math.max(...dados.map((d) => d.total));

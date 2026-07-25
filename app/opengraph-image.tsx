@@ -4,7 +4,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Oficina Rassë — gravação em madeira e impressão 3D";
 
-/** Imagem Open Graph por defeito, para as páginas sem imagem própria. */
+/** Imagem Open Graph por padrão, para as páginas sem imagem própria. */
 export default function OpengraphImage() {
   return new ImageResponse(
     <div

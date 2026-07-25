@@ -5,13 +5,13 @@ export const LOGIN_PATH = "/dashboard/login";
 /**
  * Configuração sem providers, para poder ser importada pelo middleware.
  *
- * O middleware corre no runtime edge, onde não há bcrypt nem ligação à base de
+ * O middleware roda no runtime edge, onde não há bcrypt nem conexão ao banco de
  * dados. O provider `credentials` vive em `lib/auth.ts`, que só é carregado no
  * runtime Node.
  */
 export const authConfig = {
   // Sem isto, o Auth.js v5 recusa qualquer host que não reconheça (só confia
-  // automaticamente quando corre na Vercel) e devolve UntrustedHost.
+  // automaticamente quando roda na Vercel) e retorna UntrustedHost.
   // O risco de confiar no cabeçalho Host é contido pela validação de
   // `callbackUrl`, que só aceita caminhos internos começados por /dashboard.
   trustHost: true,
@@ -29,7 +29,7 @@ export const authConfig = {
 
       if (auth?.user) return true;
 
-      // `callbackUrl` faz o Auth.js devolver a pessoa ao destino original.
+      // `callbackUrl` faz o Auth.js retornar a pessoa ao destino original.
       const url = new URL(LOGIN_PATH, request.nextUrl.origin);
       url.searchParams.set("callbackUrl", `${pathname}${search}`);
       return Response.redirect(url);

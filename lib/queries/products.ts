@@ -4,7 +4,7 @@ import { categories, products } from "@/db/schema";
 
 /**
  * Só `published` sai daqui. `draft` e `archived` não aparecem em listagens nem
- * em rota directa — é o que a Fase 3 exige.
+ * em rota direta — é o que a Fase 3 exige.
  */
 const PUBLISHED = eq(products.status, "published");
 

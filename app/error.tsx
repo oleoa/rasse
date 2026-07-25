@@ -14,7 +14,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // O digest é o que liga este ecrã à entrada nos logs da Vercel.
+    // O digest é o que liga esta tela à entrada nos logs da Vercel.
     console.error("Erro na aplicação:", error.digest ?? error.message);
   }, [error]);
 
@@ -25,7 +25,7 @@ export default function Error({
         <Eyebrow>Erro 500</Eyebrow>
         <h1 className="font-display text-h1 font-bold text-display">Alguma coisa correu mal.</h1>
         <p className="max-w-[52ch] text-base text-subtle">
-          Já registámos o problema. Tenta outra vez; se continuar, fala connosco pelo WhatsApp.
+          Já registramos o problema. Tente de novo; se continuar, fale conosco pelo WhatsApp.
         </p>
         {error.digest ? (
           <code className="rounded-sm border border-border bg-char-700 px-3 py-1.5 font-mono text-small text-subtle">

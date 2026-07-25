@@ -58,7 +58,7 @@ export function CartLines({
                     </p>
                   ) : null}
                   {unavailable ? (
-                    <p className="text-small text-danger">Já não está disponível.</p>
+                    <p className="text-small text-danger">Não está mais disponível.</p>
                   ) : null}
                 </div>
 

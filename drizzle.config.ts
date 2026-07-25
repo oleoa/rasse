@@ -8,7 +8,7 @@ if (!process.env.DATABASE_URL && existsSync(".env.local")) {
 const url = process.env.DATABASE_URL;
 
 if (!url) {
-  throw new Error("DATABASE_URL em falta. Copia .env.example para .env.local e preenche-a.");
+  throw new Error("DATABASE_URL ausente. Copie .env.example para .env.local e preencha o valor.");
 }
 
 export default defineConfig({

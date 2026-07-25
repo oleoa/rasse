@@ -4,8 +4,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 /**
- * A cesta vive só no browser até ao clique de envio. Não há carrinhos
- * abandonados na base de dados — ver CLAUDE.md, secção 6.
+ * A cesta vive só no navegador até o clique de envio. Não há carrinhos
+ * abandonados no banco de dados — ver CLAUDE.md, seção 6.
  *
  * O snapshot de nome e preço serve apenas para renderizar a cesta sem ir à rede.
  * O servidor nunca confia nele: a Server Action recarrega tudo por id.

@@ -9,7 +9,7 @@ import { auth } from "@/lib/auth";
 import { presignDownload } from "@/lib/r2";
 import type { ActionResult } from "@/lib/mutations/products";
 
-const statusSchema = z.enum(["novo", "contactado", "fechado", "perdido"]);
+const statusSchema = z.enum(["novo", "contatado", "fechado", "perdido"]);
 
 const updateSchema = z.object({
   tipo: z.enum(["pedido", "orcamento"]),
@@ -23,9 +23,9 @@ async function exigirSessao(): Promise<boolean> {
   return Boolean(session?.user);
 }
 
-/** Muda o estado e/ou as notas internas. As notas gravam-se sozinhas, com debounce no cliente. */
+/** Muda o estado e/ou as notas internas. As notas são salvas sozinhas, com debounce no cliente. */
 export async function updateRequest(raw: unknown): Promise<ActionResult> {
-  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const parsed = updateSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "Pedido inválido." };
@@ -59,25 +59,25 @@ export async function updateRequest(raw: unknown): Promise<ActionResult> {
 const downloadSchema = z.object({ code: z.string().min(1).max(20), fileId: z.uuid() });
 
 /**
- * URL assinado de 15 minutos para descarregar um ficheiro de orçamento.
+ * URL assinada de 15 minutos para baixar um arquivo de orçamento.
  *
  * Exige sessão: sem ela não há URL nenhum, e as chaves do R2 nunca chegam ao
- * browser de quem não está autenticado.
+ * navegador de quem não está autenticado.
  */
 export async function getQuoteFileUrl(raw: unknown): Promise<ActionResult<{ url: string }>> {
-  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entra de novo." };
+  if (!(await exigirSessao())) return { ok: false, error: "Sessão expirada. Entre de novo." };
 
   const parsed = downloadSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "Pedido inválido." };
 
-  const [ficheiro] = await db
+  const [arquivo] = await db
     .select({ r2Key: quoteFiles.r2Key, filename: quoteFiles.filename })
     .from(quoteFiles)
     .innerJoin(quoteRequests, eq(quoteFiles.quoteRequestId, quoteRequests.id))
     .where(and(eq(quoteFiles.id, parsed.data.fileId), eq(quoteRequests.code, parsed.data.code)))
     .limit(1);
 
-  if (!ficheiro) return { ok: false, error: "Ficheiro não encontrado." };
+  if (!arquivo) return { ok: false, error: "Arquivo não encontrado." };
 
-  return { ok: true, data: { url: await presignDownload(ficheiro.r2Key, ficheiro.filename) } };
+  return { ok: true, data: { url: await presignDownload(arquivo.r2Key, arquivo.filename) } };
 }
